@@ -11,4 +11,4 @@ published in the `linear_offset`  and `angular_offset` topics.
 
 ## Published topics
 `linear_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
-`angular_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
+`angular_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
