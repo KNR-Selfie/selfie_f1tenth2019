@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>offset_calculator</name>
+  <name>selfie_offset_calc</name>
   <version>0.0.0</version>
-  <description>The offset_calculator package</description>
+  <description>The selfie_offset_calc package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="krzsiu@todo.todo">krzsiu</maintainer>
+  <maintainer email="krzysztof.josk@gmail.com">Krzysztof Jóskowiak</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
