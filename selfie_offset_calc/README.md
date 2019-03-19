@@ -9,6 +9,9 @@ published in the `linear_offset`  and `angular_offset` topics.
 ## Subscribed topics
 `path`([nav_msgs/Path](docs.ros.org/melodic/api/nav_msgs/html/msg/Path.html))
 
+`amcl_pose`([geometry_msgs/PoseWithCovarianceStamped](http://docs.ros.org/api/geometry_msgs/html/msg/PoseWithCovarianceStamped.html))
+
 ## Published topics
 `linear_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
+
 `angular_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
