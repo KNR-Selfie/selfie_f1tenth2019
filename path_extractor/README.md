@@ -1,6 +1,7 @@
 # Path extractor
 
 Paczka na podstawie aktualnej pozycji samochodu znajduje najblizszy mu punkt na wczesniej wyznaczonej trasie. Program `path_extractor` publikuje wycinek trasy, ktory zawiera ten i sasiednie punkty z trasy, w liczbie zaleznej od parametrow.
+Pozostale skrypty i launchfile umozliwiaja przetestowanie glownego programu.
 
 ## `path_extractor`
 

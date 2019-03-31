@@ -10,6 +10,7 @@ import numpy as np
 
 from std_msgs.msg import Float64
 from nav_msgs.msg import Path
+from geometry_msgs.msg import PoseStamped
 
 UPDATE_RATE = 100
 
@@ -18,7 +19,9 @@ if __name__ == '__main__':
 
     #Get Parameters
     points_backwards = rospy.get_param('~path_points_backwards', 2)
+    points_backwards = np.max([0, points_backwards])
     points_forwards = rospy.get_param('~path_points_forwards', 5)
+    points_forwards = np.max([0, points_forwards])
     path_direction = rospy.get_param('~path_direction', 0)
     direction = 0
     #Direction will be reversed by multiplying by -1
@@ -61,13 +64,12 @@ if __name__ == '__main__':
         closest_point_index = np.argmin(np.sum(np.square(np.array(point)-pathpoints), 1))
         #Find index of the first point of the published path
         current_index = (closest_point_index + len(pathpoints) - points_backwards*direction) % len(pathpoints)
-        last_index = (closest_point_index + points_forwards*direction) % len(pathpoints)
 
         output_path = Path()
         output_path.header.stamp = current_time
         output_path.header.frame_id = 'map'
         output_path.poses = []
-        while not current_index == last_index:
+        for i in range(1 + points_backwards + points_forwards):
             pose = PoseStamped()
             pose.header.frame_id = 'map'
             pose.header.stamp = current_time
