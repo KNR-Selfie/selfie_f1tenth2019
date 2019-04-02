@@ -18,4 +18,4 @@ Required transforms:
 `angular_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
 
 ## Parameters
-`~path_approximation_by_parabola` (`bool`, default: 0) Domyślnie ścieżka jest przybliżana prostą łączącą dwa pierwsze punkty ścieżki. Jeśli 1, to ścieżka jest przybliżana wielomianem drugiego stopnia,
+`~path_approximation_by_parabola` (`bool`, default: 0) Domyślnie ścieżka jest przybliżana prostą łączącą dwa pierwsze punkty ścieżki. Jeśli 1, to ścieżka jest przybliżana wielomianem drugiego stopnia.
