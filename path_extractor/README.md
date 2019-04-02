@@ -21,4 +21,4 @@ Liczba publikowanych punktow z trasy bezposrednio za znalezionym najblizszym pun
 Zmiana kierunku jazdy
 
 ## Input file
-Informacja o trasie zawarta jest w pliku w formacie pickle, opisanym w paczce tworzacej trajektorie.
+Informacja o trasie zawarta jest w pliku w formacie pickle, opisanym w dokumentacji paczki `path_generator`.

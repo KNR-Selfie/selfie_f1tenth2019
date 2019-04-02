@@ -17,35 +17,34 @@ UPDATE_RATE = 100
 if __name__ == '__main__':
     rospy.init_node('path_extractor')
 
-    #Get Parameters
+    # Get Parameters
     points_backwards = rospy.get_param('~path_points_backwards', 2)
     points_backwards = np.max([0, points_backwards])
     points_forwards = rospy.get_param('~path_points_forwards', 5)
     points_forwards = np.max([0, points_forwards])
     path_direction = rospy.get_param('~path_direction', 0)
     direction = 0
-    #Direction will be reversed by multiplying by -1
+    # Direction will be reversed by multiplying by -1
     if path_direction == 1:
         direction = -1
     else:
         direction = 1
 
-    #Read input file
+    # Read input file
     filename = sys.argv[1]
     with open(filename, 'rb') as f:
         map_data = pickle.load(f)
     pathpoints = map_data['pathpoints']
 
-    #Topic publishers
+    # Topic publishers
     path_pub = rospy.Publisher('closest_path_points', Path, queue_size=UPDATE_RATE)
 
-    #Configure transform listener
+    # Configure transform listener
     tf_buffer = tf2_ros.Buffer()
     tf_listener = tf2_ros.TransformListener(tf_buffer)
 
-    #Set update/publishing rate
+    # Set update/publishing rate
     rate = rospy.Rate(UPDATE_RATE)
-
 
     while not rospy.is_shutdown():
         current_time = rospy.Time.now()
@@ -62,7 +61,7 @@ if __name__ == '__main__':
 
         point = (x, y)
         closest_point_index = np.argmin(np.sum(np.square(np.array(point)-pathpoints), 1))
-        #Find index of the first point of the published path
+        # Find index of the first point of the published path
         current_index = (closest_point_index + len(pathpoints) - points_backwards*direction) % len(pathpoints)
 
         output_path = Path()

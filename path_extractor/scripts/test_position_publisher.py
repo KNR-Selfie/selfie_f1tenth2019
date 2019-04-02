@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-#Node do testowania path_extractor
-#Przekazuje do tf prosta transformacje map - base_link
+# Node do testowania path_extractor
+# Przekazuje do tf prosta transformacje map - base_link
 
 import rospy
 import tf2_ros
@@ -11,8 +11,8 @@ import numpy as np
 
 UPDATE_RATE = 10
 
-#0 - straight line
-#1 - circle
+# 0 - straight line
+# 1 - circle
 trajectory = 1
 
 if __name__ == '__main__':
@@ -37,8 +37,8 @@ if __name__ == '__main__':
         t.header.frame_id = 'map'
         t.child_frame_id = 'base_link'
         if trajectory == 0:
-            t.transform.translation.x = x - max_x/2#straight path
-            t.transform.translation.y = y - max_y/2#straight path
+            t.transform.translation.x = x - max_x/2
+            t.transform.translation.y = y - max_y/2
         elif trajectory == 1:
             t.transform.translation.x = 4*np.sin(x)
             t.transform.translation.y = 4*np.cos(x)
@@ -49,9 +49,8 @@ if __name__ == '__main__':
         t.transform.rotation.z = q[2]
         t.transform.rotation.w = q[3]
 
-
         br.sendTransform(t)
 
         x = (x+dx) % max_x
         y = (y+dy) % max_y
-        rate.sleep();
+        rate.sleep()
