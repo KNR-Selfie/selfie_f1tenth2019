@@ -1,17 +1,21 @@
 
 # Offset calculator
-`selfie_offset_calc` package provides a node with the same name responsible for
-calculating a linear and an angular offset from the desired path. Results are
-published in the `linear_offset`  and `angular_offset` topics.
+Paczka `selfie_offset_calc` zapewnia node o takiej samej nazwie liczący liniowe i kątowe przesunięcie od wyznaczonej ścieżki. Wyniki są publikowane w topicach `linear_offset` i `angular_offset`.
 
 ## `selfie_offset_calc`
 
 ## Subscribed topics
-`path`([nav_msgs/Path](docs.ros.org/melodic/api/nav_msgs/html/msg/Path.html))
+`closest_path_points`([nav_msgs/Path](docs.ros.org/melodic/api/nav_msgs/html/msg/Path.html))
 
-`amcl_pose`([geometry_msgs/PoseWithCovarianceStamped](http://docs.ros.org/api/geometry_msgs/html/msg/PoseWithCovarianceStamped.html))
+`tf`([tf/tfMessage](http://docs.ros.org/melodic/api/tf/html/msg/tfMessage.html))
 
+Required transforms:
+
+`map` -> `base_link`
 ## Published topics
 `linear_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
 
 `angular_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
+
+## Parameters
+`~path_approximation_by_parabola` (`bool`, default: 0) Domyślnie ścieżka jest przybliżana prostą łączącą dwa pierwsze punkty ścieżki. Jeśli 1, to ścieżka jest przybliżana wielomianem drugiego stopnia,
