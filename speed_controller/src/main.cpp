@@ -1,4 +1,3 @@
-
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include <fstream>
@@ -32,8 +31,7 @@ public:
     void callback(const std_msgs::Float64& lin)
     {
         std_msgs::Float64 output;
-        if (n.Param("speed", speed,1) && n.Param("distance", dist,72975) && n.Param("angle", angle,500) && n.getParam("max_speed", max_speed,2))
-        {
+        if (n.getParam("speed_controller/speed", speed) && n.getParam("speed_controller/distance", dist) && n.getParam("speed_controller/angle", angle) && n.getParam("speed_controller/max_speed", max_speed)) {
             output.data = speed / (dist * pow(lin.data, 2) + angle * pow(angu.data, 2));
             if (output.data > max_speed)
                 output.data = max_speed;
