@@ -40,6 +40,7 @@ int main(int argc, char **argv)
   Usb.init();
 
   ros::Time begin = ros::Time::now();
+  ros::Rate rate(100);
 
   while (ros::ok())
   {
@@ -82,6 +83,7 @@ int main(int argc, char **argv)
     dis_publisher.publish(dis_msg);
 
     ros::spinOnce();
+    rate.sleep();
   }
 }
 
