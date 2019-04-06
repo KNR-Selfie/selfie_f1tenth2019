@@ -27,8 +27,8 @@ public:
     OffsetCalc()
     {
       //nh.getParam("~path_approximation_by_parabola", path_approximation_by_parabola);
-      linear_offset_pub = nh.advertise< std_msgs::Float64 >("linear_offset", MSG_QUEUE_SIZE);
-      angular_offset_pub = nh.advertise< std_msgs::Float64 >("angular_offset", MSG_QUEUE_SIZE);
+      linear_offset_pub = nh.advertise< std_msgs::Float64 >("position_offset", MSG_QUEUE_SIZE);
+      angular_offset_pub = nh.advertise< std_msgs::Float64 >("heading_offset", MSG_QUEUE_SIZE);
       path_sub = nh.subscribe( "/closest_path_points", MSG_QUEUE_SIZE, &OffsetCalc::pathCallBack, this);
     }
 

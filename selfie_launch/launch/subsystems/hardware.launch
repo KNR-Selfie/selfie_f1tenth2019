@@ -1,4 +1,5 @@
 <launch>
-    <node pkg="sick_tim" type="sick_tim551_2050001" name="lidar"/>
+    <!--<include file="$(find selfie_launch)/launch/subsystems/lidars.launch" />-->
+    <node pkg="urg_node" type="urg_node" name="urg_node" />
     <node pkg="selfie_stm32_bridge" type="selfie_stm32_bridge" name="stm32"/>
 </launch>

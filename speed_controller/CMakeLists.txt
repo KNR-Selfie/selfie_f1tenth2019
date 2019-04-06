@@ -1,16 +1,17 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(selfie_launch)
+project(speed_controller)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+find_package(Boost COMPONENTS system)
 find_package(catkin REQUIRED COMPONENTS
-  hector_mapping
-  tf
-  urg_node
+  roscpp
+  std_msgs
+
 )
 
 ## System dependencies are found with CMake's conventions
@@ -70,7 +71,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
+#   std_msgs
 # )
 
 ################################################
@@ -104,8 +105,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES selfie_launch
-#  CATKIN_DEPENDS hector_mapping selfie_stm32_bridge tf urg_node
+#  LIBRARIES speed_controller
+#  CATKIN_DEPENDS roscpp std_msgs
 #  DEPENDS system_lib
 )
 
@@ -122,7 +123,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/selfie_launch.cpp
+#   src/${PROJECT_NAME}/speed_controller.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -133,8 +134,8 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/selfie_launch_node.cpp)
-
+# add_executable(${PROJECT_NAME}_node src/speed_controller_node.cpp)
+add_executable(speed_controller_node src/main.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -149,7 +150,7 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-
+target_link_libraries(speed_controller_node ${catkin_LIBRARIES})
 #############
 ## Install ##
 #############
@@ -178,17 +179,19 @@ include_directories(
 #   PATTERN ".svn" EXCLUDE
 # )
 
-## Mark launch files for installation
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  PATTERN ".svn" EXCLUDE)
+## Mark other files for installation (e.g. launch and bag files, etc.)
+# install(FILES
+#   # myfile1
+#   # myfile2
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+# )
 
 #############
 ## Testing ##
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_selfie_launch.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_speed_controller.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

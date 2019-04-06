@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(selfie_launch)
+project(selfie_control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,9 +8,21 @@ project(selfie_launch)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  hector_mapping
-  tf
-  urg_node
+  genmsg actionlib_msgs
+  dynamic_reconfigure
+  ackermann_msgs
+  dynamic_reconfigure
+  actionlib_msgs
+  actionlib
+  genmsg
+  rospy
+  std_msgs
+)
+
+
+generate_dynamic_reconfigure_options(
+  cfg/HeadingCoeff.cfg
+  cfg/Control.cfg
 )
 
 ## System dependencies are found with CMake's conventions
@@ -70,7 +82,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
+#   ackermann_msgs#   std_msgs
 # )
 
 ################################################
@@ -104,8 +116,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES selfie_launch
-#  CATKIN_DEPENDS hector_mapping selfie_stm32_bridge tf urg_node
+#  LIBRARIES selfie_control
+#  CATKIN_DEPENDS ackermann_msgs dynamic_reconfigure rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -122,7 +134,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/selfie_launch.cpp
+#   src/${PROJECT_NAME}/selfie_control.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -133,7 +145,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/selfie_launch_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/selfie_control_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -178,17 +190,19 @@ include_directories(
 #   PATTERN ".svn" EXCLUDE
 # )
 
-## Mark launch files for installation
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  PATTERN ".svn" EXCLUDE)
+## Mark other files for installation (e.g. launch and bag files, etc.)
+# install(FILES
+#   # myfile1
+#   # myfile2
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+# )
 
 #############
 ## Testing ##
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_selfie_launch.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_selfie_control.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
