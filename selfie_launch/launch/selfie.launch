@@ -2,7 +2,7 @@
   <arg name="map_file" />
   <arg name="path_file" />
 
-  <include file="$(find selfie_launch)/launch/subsystems/hardware.launch" />
+  <!--<include file="$(find selfie_launch)/launch/subsystems/hardware.launch" />-->
   <include file="$(find selfie_launch)/launch/subsystems/transforms.launch" />
 
   <node pkg="selfie_odometry" type="selfie_odometry" name="selfie_odometry" />
@@ -11,7 +11,7 @@
   <node pkg="amcl" type="amcl" name="amcl" />
 
   <node pkg="path_extractor" type="path_extractor.py" name="path_extractor" args="$(arg path_file)">
-    <param name="path_points_backwards" type="int" value="2"/>
+    <param name="path_points_backwards" type="int" value="0"/>
     <param name="path_points_forwards" type="int" value="5" />
     <param name="path_direction" type="bool" value="false" />
   </node>
