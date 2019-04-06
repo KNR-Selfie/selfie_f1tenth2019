@@ -11,12 +11,12 @@ Przymuje trzy argumenty.
 
 ## Subscribed topics
 
-`linear_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
+`position_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
 
-`angular_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
+`heading_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float32.html))
 
 ## Published topics
-`speed_data` ([std_msgs/Float64 Message](http://docs.ros.org/lunar/api/std_msgs/html/msg/Float64.html))
+`target_speed` ([std_msgs/Float64 Message](http://docs.ros.org/lunar/api/std_msgs/html/msg/Float64.html))
 
 ## Parameters
 

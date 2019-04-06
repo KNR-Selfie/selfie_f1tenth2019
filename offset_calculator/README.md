@@ -13,9 +13,9 @@ Required transforms:
 
 `map` -> `base_link`
 ## Published topics
-`linear_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float64.html))
+`position_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float64.html))
 
-`angular_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float64.html))
+`heading_offset`([std_msgs/Float64](http://docs.ros.org/api/std_msgs/html/msg/Float64.html))
 
 ## Parameters
 `~path_approximation_by_parabola` (`bool`, default: 0) Domyślnie ścieżka jest przybliżana prostą łączącą dwa pierwsze punkty ścieżki. Jeśli 1, to ścieżka jest przybliżana wielomianem drugiego stopnia.
