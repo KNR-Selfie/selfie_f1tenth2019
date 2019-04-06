@@ -105,9 +105,9 @@ public:
       //ROS_INFO("coefs: %lf %lf %lf", coefficients[0], coefficients[1], coefficients[2]);
       //ROS_INFO("%lf %lf\n", linear_offset, angular_offset);
       std_msgs::Float64 msg;
-      msg.data = linear_offset;
+      msg.data = (-1)*linear_offset;
       linear_offset_pub.publish(msg);
-      msg.data = angular_offset;
+      msg.data = (-1)*angular_offset;
       angular_offset_pub.publish(msg);
     }
   };
