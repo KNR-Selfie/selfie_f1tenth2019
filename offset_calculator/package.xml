@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>selfie_offset_calc</name>
-  <version>0.0.0</version>
-  <description>The selfie_offset_calc package</description>
+  <name>offset_calculator</name>
+  <version>0.5.0</version>
+  <description>The offset_calculator package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -48,6 +48,10 @@
   <!--   <test_depend>gtest</test_depend> -->
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
+  <depend>roscpp</depend>
+  <depend>tf</depend>
+  <depend>nav_msgs</depend>
+  <depend>std_msgs</depend>
   <buildtool_depend>catkin</buildtool_depend>
 
 
