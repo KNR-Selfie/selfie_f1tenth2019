@@ -8,10 +8,21 @@ project(selfie_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  genmsg actionlib_msgs
+  dynamic_reconfigure
   ackermann_msgs
   dynamic_reconfigure
+  actionlib_msgs
+  actionlib
+  genmsg
   rospy
   std_msgs
+)
+
+
+generate_dynamic_reconfigure_options(
+  cfg/HeadingCoeff.cfg
+  cfg/Control.cfg
 )
 
 ## System dependencies are found with CMake's conventions

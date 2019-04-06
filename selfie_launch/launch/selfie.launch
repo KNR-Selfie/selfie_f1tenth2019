@@ -2,13 +2,15 @@
   <arg name="map_file" />
   <arg name="path_file" />
 
-  <!--<include file="$(find selfie_launch)/launch/subsystems/hardware.launch" />-->
+  <include file="$(find selfie_launch)/launch/subsystems/hardware.launch" />
   <include file="$(find selfie_launch)/launch/subsystems/transforms.launch" />
 
   <node pkg="selfie_odometry" type="selfie_odometry" name="selfie_odometry" />
 
   <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" />
-  <node pkg="amcl" type="amcl" name="amcl" />
+  <node pkg="amcl" type="amcl" name="amcl" >
+    <param name="use_map_topic" type="bool" value="true" />
+  </node>
 
   <node pkg="path_extractor" type="path_extractor.py" name="path_extractor" args="$(arg path_file)">
     <param name="path_points_backwards" type="int" value="0"/>
@@ -16,7 +18,7 @@
     <param name="path_direction" type="bool" value="false" />
   </node>
 
-  <node pkg="offset_caluclator" type="offset_calculator" name="offset_calculator" />
+  <node pkg="offset_calculator" type="offset_calculator" name="offset_calculator" />
 
   <node pkg="offset_combiner" type="offset_combiner.py" name="offset_combiner" />
 

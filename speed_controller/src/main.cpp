@@ -14,9 +14,9 @@ class a
   public:
   a()
   {
-    pub_ = n.advertise<std_msgs::Float64>("speed_data",MSG_QUEUE_SIZE);
+    pub_ = n.advertise<std_msgs::Float64>("target_speed",MSG_QUEUE_SIZE);
 
-    lin_sub = n.subscribe("linear_offset", MSG_QUEUE_SIZE, &a::callback,this);
+    lin_sub = n.subscribe("position_offset", MSG_QUEUE_SIZE, &a::callback,this);
   }
   ros::NodeHandle n;
   ros::Publisher pub_;
@@ -30,7 +30,7 @@ class a
 
 void callback(const std_msgs::Float64& lin)
 {
-  angu_sub=n.subscribe("angular_offset", MSG_QUEUE_SIZE, &a::callback1, this);
+  angu_sub=n.subscribe("heading_offset", MSG_QUEUE_SIZE, &a::callback1, this);
   ros::spinOnce();
   std_msgs::Float64 output;
   if(n.getParam("speed",speed)&&n.getParam("distance",dist)&&n.getParam("angle",angle)&&n.getParam("max_speed",max_speed))

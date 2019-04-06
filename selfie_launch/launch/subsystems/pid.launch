@@ -9,7 +9,7 @@
     <param name="max_loop_frequency" value="100.0" />
     <param name="min_loop_frequency" value="100.0" />
 
-    <remap from="state" to="steering_state" />
+    <remap from="state" to="combined_offset" />
     <remap from="control_effort" to="steering_angle" />
   </node>
 
