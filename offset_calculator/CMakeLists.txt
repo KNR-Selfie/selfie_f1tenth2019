@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(selfie_offset_calc)
+project(offset_calculator)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -7,7 +7,13 @@ project(selfie_offset_calc)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(
+  catkin REQUIRED COMPONENTS
+  tf
+  nav_msgs
+  std_msgs
+  roscpp
+  )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -113,8 +119,18 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
 # include
-# ${catkin_INCLUDE_DIRS}
+ ${catkin_INCLUDE_DIRS}
 )
+
+add_executable(offset_calculator src/offset_calculator.cpp)
+target_link_libraries(offset_calculator ${catkin_LIBRARIES})
+
+add_executable(test_path_publisher src/test_path_publisher.cpp)
+target_link_libraries(test_path_publisher ${catkin_LIBRARIES})
+
+add_executable(test_transform_broadcast src/test_transform_broadcast.cpp)
+target_link_libraries(test_transform_broadcast ${catkin_LIBRARIES})
+
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
