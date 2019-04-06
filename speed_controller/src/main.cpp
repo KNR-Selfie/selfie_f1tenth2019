@@ -10,14 +10,15 @@
 #include <boost/bind/bind.hpp>
 #define MSG_QUEUE_SIZE 10
 using namespace std;
-class a
+class SpeedController
 {
   public:
-  a()
+  SpeedController()
   {
     pub_ = n.advertise<std_msgs::Float64>("speed_data",MSG_QUEUE_SIZE);
 
-    lin_sub = n.subscribe("linear_offset", MSG_QUEUE_SIZE, &a::callback,this);
+    lin_sub = n.subscribe("linear_offset", MSG_QUEUE_SIZE, &SpeedController::callback,this);
+     angu_sub=n.subscribe("angular_offset", MSG_QUEUE_SIZE, &SpeedController::callback1, this);
   }
   ros::NodeHandle n;
   ros::Publisher pub_;  
@@ -26,25 +27,27 @@ class a
 
   void callback1(const std_msgs::Float64& an)
   {
+    //cout<<"an: "<<an.data<<endl;
     this->angu.data=an.data;
   }
 
 void callback(const std_msgs::Float64& lin)
 {
-  angu_sub=n.subscribe("angular_offset", MSG_QUEUE_SIZE, &a::callback1, this);
-  ros::spinOnce();
   std_msgs::Float64 output;
   if(n.getParam("speed",speed)&&n.getParam("distance",dist)&&n.getParam("angle",angle)&&n.getParam("max_speed",max_speed))
   {
+//cout<<"dist: "<<lin.data<<" "<<"angu: "<<angu.data<<endl;
     output.data=speed/(dist*pow(lin.data,2)+angle*pow(angu.data,2));
     if(output.data>max_speed) output.data=max_speed;
   }
   else
   {
+//cout<<"dist: "<<lin.data<<" "<<"angu: "<<angu.data<<endl;
     output.data=1/(pow(lin.data,2)+pow(angu.data,2));
   }
-  
+  ros::Rate rate(10);
   pub_.publish(output);
+  rate.sleep();
 }
  std_msgs::Float64 angu;
   double speed=0;
@@ -55,8 +58,9 @@ void callback(const std_msgs::Float64& lin)
 int main(int argc, char **argv)
 {
 
-  ros::init(argc, argv, "subscribe_and_publish");
-  a a;
+  ros::init(argc, argv, "speed_controller");
+  SpeedController a;
   ros::spin();
   return 0;
 }
+
