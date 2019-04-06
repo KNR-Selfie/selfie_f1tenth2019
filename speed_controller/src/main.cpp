@@ -14,9 +14,9 @@ class SpeedController {
 public:
     SpeedController()
     {
-        pub_ = n.advertise<std_msgs::Float64>("speed_data", MSG_QUEUE_SIZE);
-        lin_sub = n.subscribe("linear_offset", MSG_QUEUE_SIZE, &SpeedController::callback, this);
-        angu_sub = n.subscribe("angular_offset", MSG_QUEUE_SIZE, &SpeedController::callback1, this);
+        pub_ = n.advertise<std_msgs::Float64>("target_speed", MSG_QUEUE_SIZE);
+        lin_sub = n.subscribe("position_offset", MSG_QUEUE_SIZE, &SpeedController::callback, this);
+        angu_sub = n.subscribe("heading_offset", MSG_QUEUE_SIZE, &SpeedController::callback1, this);
     }
     ros::NodeHandle n;
     ros::Publisher pub_;
