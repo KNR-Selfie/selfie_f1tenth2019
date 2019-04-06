@@ -30,7 +30,7 @@
 
   <node pkg="speed_controller" type="speed_controller_node" name="speed_controller">
     <param name="speed" type="double" value="182.5" />
-    <param name="distance" type="double" value="500" />
+    <param name="distance" type="double" value="72795" />
     <param name="angle" type="double" value="500" />
     <param name="max_speed" type="double" value="2" />
   </node>
