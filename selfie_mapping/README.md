@@ -6,11 +6,11 @@ To build a map you can choose between two options. Each of them can use one or t
 Create a map as fast as possible with no visualisation.
 * one lidar
 ```
-roslaunch selfie_mapping fast_mapping_1lidar.launch bag_filename:=${HOME}/path/bag_filename.bag
+roslaunch selfie_mapping fast_mapping_1lidar.launch bag_filenames:=${HOME}/path/bag_filename.bag
 ```
 * two lidars
 ```
-roslaunch selfie_mapping fast_mapping_2lidar.launch bag_filename:=${HOME}/path/bag_filename.bag
+roslaunch selfie_mapping fast_mapping_2lidar.launch bag_filenames:=${HOME}/path/bag_filename.bag
 ```
 
 #### Viz mapping
@@ -30,8 +30,6 @@ To save map use the following command:
 rosrun map_server map_saver -f map_name
 ```
 The map will be saved in the current path.
-## Workspace setup
-The package should be placed in the [source space](http://wiki.ros.org/catkin/workspaces#Source_Space) of your Cartographer's workspace.
 
 ## Subscribed topics
 `odom` ([nav_msgs/Odometry](http://docs.ros.org/melodic/api/nav_msgs/html/msg/Odometry.html))

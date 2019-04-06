@@ -14,7 +14,7 @@
       required="$(arg no_rviz)"
       type="cartographer_offline_node" args="
           -configuration_directory $(find selfie_mapping)/config
-          -configuration_basename cartographer_2lidar.lua
+          -configuration_basenames cartographer_2lidar.lua
           -bag_filenames $(arg bag_filenames)"
       output="screen">
   </node>
