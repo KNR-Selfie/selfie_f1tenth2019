@@ -83,7 +83,6 @@ int main(int argc, char **argv)
     dis_publisher.publish(dis_msg);
 
     ros::spinOnce();
-    rate.sleep();
   }
 }
 
