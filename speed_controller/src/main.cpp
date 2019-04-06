@@ -32,7 +32,8 @@ public:
     void callback(const std_msgs::Float64& lin)
     {
         std_msgs::Float64 output;
-        if (n.getParam("speed", speed) && n.getParam("distance", dist) && n.getParam("angle", angle) && n.getParam("max_speed", max_speed)) {
+        if (n.Param("speed", speed,1) && n.Param("distance", dist,72975) && n.Param("angle", angle,500) && n.getParam("max_speed", max_speed,2))
+        {
             output.data = speed / (dist * pow(lin.data, 2) + angle * pow(angu.data, 2));
             if (output.data > max_speed)
                 output.data = max_speed;
