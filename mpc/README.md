@@ -51,3 +51,9 @@ i funkcji A*e^(1/x), gdzie A to odpowiednio dobrana stala, x to odleglosc danego
 # Optimizer
 Minimalizuje koszt sekwencji komend (par kontrolowanych zmiennych) o dlugosci okreslonej przez parametr control_horizon.
 Dla każdej sekwencji komend w kroku dzialania programu wyznaczana jest suma kosztow odpowiadajacych im stanow az do prediction_horizon. Na podstawie gradientu kosztu w danym punkcie dla kolejnego kroku dobierana jest odpowiednia nowa sekwencja komend. Uwzglednia ograniczenia modelu.
+
+
+## CppAD
+Program korzysta z bibliotek CppAD i IPOPT.
+
+`sudo apt-get install cppad coinor-libipopt-dev`
