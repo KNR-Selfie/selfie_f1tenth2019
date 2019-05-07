@@ -12,7 +12,7 @@
 ## Parameters
 - `~prediction_horizon` (`int`, default: 10)
 - `~delta_time` (`double`, default: 0.05)
-- `~max_mod_delta` (`double`, default: 0.436332) Maximum angle delta that the wheels can turn in radians
+- `~max_mod_delta` (`double`, default: 0.44) Maximum angle delta that the wheels can turn in radians
 - `~max_acceleration` (`double`, default: 1)
 - `~max_decceleration` (`double`, default: -1)
 ###### Cost function weights
