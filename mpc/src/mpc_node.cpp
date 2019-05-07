@@ -4,6 +4,7 @@
 #include "std_msgs/Float32.h"
 #include "nav_msgs/Path.h"
 #include "geometry_msgs/PointStamped.h"
+#include "Eigen-3.3.7/Eigen/QR"
 #include "mpc.h"
 
 #define POLYFIT_ORDER 2
@@ -26,7 +27,7 @@ int main(int argc, char** argv)
   ros::Publisher target_speed = nh.advertise<std_msgs::Float64>("target_speed", 1000);
   ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
   ros::Publisher optimal_path = nh.advertise<nav_msgs::Path>("optimal_path", 1000);
-  ros::Subscriber speed = nh.subscribe("speed", 1000, speedCallback);
+  ros::Subscriber speed_sub = nh.subscribe("speed", 1000, speedCallback);
   ros::Subscriber closest_path_points = nh.subscribe("closest_path_points", 1000, pathCallback);
 
   tf::TransformListener listener;
@@ -49,12 +50,14 @@ int main(int argc, char** argv)
   nh.param("~a_weight", p.a_weight, 100);
   nh.param("~diff_delta_weight", p.diff_delta_weight, 100);
   nh.param("~diff_a_weight", p.diff_a_weight, 10);
-  nh.param("~ref_v", p.ref_v, 2);
+  nh.param("~ref_v", p.ref_v, 2.0);
 
 
-  Mpc mpc(p);
+  MPC mpc(p);
   ros::Rate rate(loop_rate);
   double x, y, orientation;
+  Controls controls;
+
   while(ros::ok())
   {
     if(path_points.empty())
@@ -64,7 +67,7 @@ int main(int argc, char** argv)
     //get current state info
     listener.lookupTransform("/map", "/base_link", ros::Time(0), transform);
     vector<geometry_msgs::PointStamped> path_points_base_link;
-    for(unsigned int i = 0; i < path_points.size())
+    for(unsigned int i = 0; i < path_points.size(); ++i)
     {
       geometry_msgs::PointStamped pointS;
       listener.transformPoint("/base_link", path_points[i], pointS);
@@ -81,8 +84,30 @@ int main(int argc, char** argv)
     VectorXd pathCoeffs;
     pathCoeffs = polyfit(x, y, POLYFIT_ORDER);
 
-    VectorXd state(6);
-    //dalej uzupelnienie state, getControls i publish
+    VectorXd state(STATE_VARS);
+    state<< transform.getOrigin().x(), transform.getOrigin().y();
+    tf::Quaternion base_link_q = transform.getRotation();
+    tfScalar yaw, pitch, roll;
+    tf::Matrix3x3 rotation_mat(base_link_q);
+    rotation_mat.getRPY(roll, pitch, yaw, 1);
+    state<<yaw;
+    state<<speed;
+    state<<pathCoeffs[0];
+    state<<CppAD::atan(pathCoeffs[1]);
+
+    controls = mpc.getControls(pathCoeffs, state);
+
+    std_msgs::Float64 target_speed_msg;
+    std_msgs::Float64 steering_angle_msg;
+    nav_msgs::Path optimal_path_msg;
+
+    target_speed_msg.data = speed + controls.acceleration * p.delta_time;
+    steering_angle_msg.data = controls.delta;
+    optimal_path_msg = controls.predicted_path;
+
+    target_speed.publish(target_speed_msg);
+    steering_angle.publish(steering_angle_msg);
+    optimal_path.publish(optimal_path_msg);
 
     rate.sleep();
   }
@@ -102,7 +127,7 @@ void pathCallback(const nav_msgs::Path::ConstPtr& msg)
   {
     geometry_msgs::PointStamped pointS;
     pointS.point = msg->poses[i].pose.position;
-    pointS.header.frameID = "/map";
+    pointS.header.frame_id = "/map";
     path_points.push_back(pointS);
   }
 }

@@ -46,24 +46,6 @@ struct Controls
   nav_msgs::Path predicted_path;
 };
 
-//Parameters
-Params params;
-// Position on the map
-size_t x_start;
-size_t y_start;
-// Orientation with respect to the x(?) axis
-size_t psi_start;
-// Velocity with respect to map
-size_t v_start;
-// Path position offset
-size_t cte_start;
-// Path heading offset
-size_t epsi_start;
-// Variables for actuators
-// Steering angle
-size_t delta_start;
-// Acceleration
-size_t a_start;
 
 class MPC
 {
