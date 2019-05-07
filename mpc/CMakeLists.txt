@@ -119,11 +119,8 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-)
-
+include_directories( ${catkin_INCLUDE_DIRS} include )
+#link_directories( $HOME/Ipopt )
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/mpc.cpp
@@ -138,7 +135,10 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/mpc_node.cpp)
-add_executable(mpc src/mpc_node.cpp src/fg_eval.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/fg_eval.cpp src/solver.cpp)
+target_link_libraries(${PROJECT_NAME} ipopt ${catkin_LIBRARIES})
+
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -154,7 +154,7 @@ add_executable(mpc src/mpc_node.cpp src/fg_eval.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(mpc ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##
