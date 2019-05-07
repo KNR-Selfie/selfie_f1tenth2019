@@ -1,6 +1,6 @@
 #include "solver.h"
 
-std::vector<double> Solver::Solve(const VectorXd &state, const VectorXd &coeffs)
+std::vector<double> Solver::Solve(const VectorXd &state, const VectorXd &pathCoeffs)
 {
   bool ok = true;
   typedef CPPAD_TESTVECTOR(double) Dvector;
@@ -102,7 +102,7 @@ std::vector<double> Solver::Solve(const VectorXd &state, const VectorXd &coeffs)
   }
 
   // Object that computes the cost function f and the constraints g_i
-  FG_eval fg_eval(coeffs);
+  FG_eval fg_eval(pathCoeffs);
 
   //options for IPOPT optimizer
   std::string options;
