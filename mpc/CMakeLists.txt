@@ -135,7 +135,7 @@ include_directories( ${catkin_INCLUDE_DIRS} include )
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/mpc_node.cpp)
-add_executable(${PROJECT_NAME} src/main.cpp src/fg_eval.cpp src/solver.cpp)
+add_executable(${PROJECT_NAME} src/mpc_node.cpp src/fg_eval.cpp src/solver.cpp)
 target_link_libraries(${PROJECT_NAME} ipopt ${catkin_LIBRARIES})
 
 
