@@ -19,19 +19,42 @@
 #define MAX_ACCELERATION 1
 //Maximum decceleration
 #define MAX_DECCELERATION -1
+// Distance from the rear axis to the center of mass
+#define Lf 0.2;
+// Indexing variables that are used by fg_eval and solver
+
+//prediction horizon steps
+size_t N;
+// Position on the map
+size_t x_start;
+size_t y_start;
+// Orientation with respect to the x(?) axis
+size_t psi_start;
+// Velocity with respect to map
+size_t v_start;
+// Path position offset
+size_t cte_start;
+// Path heading offset
+size_t epsi_start;
+
+// Variables for actuators
+// Steering angle
+size_t delta_start;
+// Acceleration
+size_t a_start;
 
 using CppAD::AD;
 using Eigen::VectorXd;
 
 class Solver{
 
-  //prediction horizon steps
-  size_t N;
-
 public:
   std::vector<double> Solve(const VectorXd &state, const VectorXd &coeffs);
 
 };
+
+
+
 
 
 #endif //SOLVER_H

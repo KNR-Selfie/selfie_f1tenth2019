@@ -22,14 +22,14 @@ std::vector<double> Solver::Solve(const VectorXd &state, const VectorXd &pathCoe
   /*
    * Initiate indexing variables //TODO ogarnac zeby to bylo dzielone z fg_eval
    */
-  size_t x_start = 0;
+  /*size_t x_start = 0;
   size_t y_start = x_start + N;
   size_t psi_start = y_start + N;
   size_t v_start = psi_start + N;
   size_t cte_start = v_start + N;
   size_t epsi_start = cte_start + N;
   size_t delta_start = epsi_start + N;
-  size_t a_start = delta_start + N - 1;
+  size_t a_start = delta_start + N - 1;*/
 
   //Set the number of model variables
   size_t n_vars = STATE_VARS * N + ACTUATORS_VARS * (N - 1);
