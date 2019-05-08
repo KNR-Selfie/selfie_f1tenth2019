@@ -86,9 +86,9 @@ int main(int argc, char** argv)
 
     VectorXd state(STATE_VARS);
     state<< transform.getOrigin().x(), transform.getOrigin().y();
-    tf::Quaternion base_link_q = transform.getRotation();
+    tf::Quaternion base_link_rot_qaternion = transform.getRotation();
     tfScalar yaw, pitch, roll;
-    tf::Matrix3x3 rotation_mat(base_link_q);
+    tf::Matrix3x3 rotation_mat(base_link_rot_qaternion);
     rotation_mat.getRPY(roll, pitch, yaw, 1);
     state<<yaw;
     state<<speed;
