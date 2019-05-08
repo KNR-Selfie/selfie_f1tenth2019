@@ -38,7 +38,7 @@ struct Params
   double ref_v;
 };
 
-//Struct that is returned by MPC
+// Struct that is returned by MPC
 struct Controls
 {
   double acceleration;
@@ -46,7 +46,7 @@ struct Controls
   nav_msgs::Path predicted_path;
 };
 
-
+//Interface for interactions with ros
 class MPC
 {
 
@@ -58,6 +58,7 @@ public:
 
 };
 
+// Class that calculates the cost function f and contraints g_i
 class FG_eval
 {
 
@@ -70,11 +71,7 @@ public:
     void operator()(ADvector& fg, const ADvector& vars);
 };
 
-
+//Function that optimizes the cost function
 std::vector<double> Solve(const VectorXd &state, const VectorXd &coeffs);
-
-
-
-
 
 #endif //MPC_H
