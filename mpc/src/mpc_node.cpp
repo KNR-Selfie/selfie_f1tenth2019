@@ -41,20 +41,20 @@ int main(int argc, char** argv)
   Params p;
   int loop_rate;
 
-  nh.param("~prediction_horizon", p.prediction_horizon, 10);
-  nh.param("~delta_time", p.delta_time, 0.05);
-  nh.param("~loop_rate", loop_rate, 10);
-  nh.param("~max_mod_delta", p.max_mod_delta, 0.44);
-  nh.param("~max_acceleration", p.max_acceleration, 1.0);
-  nh.param("~max_decceleration", p.max_decceleration, -1.0);
-  nh.param("~cte_weight", p.cte_weight, 100);
-  nh.param("~epsi_weight", p.epsi_weight, 100);
-  nh.param("~v_weight", p.v_weight, 15);
-  nh.param("~delta_weight", p.delta_weight, 2000);
-  nh.param("~a_weight", p.a_weight, 100);
-  nh.param("~diff_delta_weight", p.diff_delta_weight, 100);
-  nh.param("~diff_a_weight", p.diff_a_weight, 10);
-  nh.param("~ref_v", p.ref_v, 2.0);
+  nh.param("prediction_horizon", p.prediction_horizon, 10);
+  nh.param("delta_time", p.delta_time, 0.05);
+  nh.param("loop_rate", loop_rate, 10);
+  nh.param("max_mod_delta", p.max_mod_delta, 0.44);
+  nh.param("max_acceleration", p.max_acceleration, 1.0);
+  nh.param("max_decceleration", p.max_decceleration, -1.0);
+  nh.param("cte_weight", p.cte_weight, 100);
+  nh.param("epsi_weight", p.epsi_weight, 100);
+  nh.param("v_weight", p.v_weight, 15);
+  nh.param("delta_weight", p.delta_weight, 2000);
+  nh.param("a_weight", p.a_weight, 100);
+  nh.param("diff_delta_weight", p.diff_delta_weight, 100);
+  nh.param("diff_a_weight", p.diff_a_weight, 10);
+  nh.param("ref_v", p.ref_v, 2.0);
 
 
   MPC mpc(p);

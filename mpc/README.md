@@ -11,21 +11,21 @@
 - `/optimal_path` ([nav_msgs/Path](http://docs.ros.org/api/nav_msgs/html/msg/Path.html))
 
 ## Parameters
-- `~prediction_horizon` (`int`, default: 10)
-- `~delta_time` (`double`, default: 0.05) Time step of mpc
-- `~loop_rate` (`int`, default: 10) Rate of the main loop
-- `~max_mod_delta` (`double`, default: 0.44) Maximum angle delta that the wheels can turn in radians
-- `~max_acceleration` (`double`, default: 1)
-- `~max_decceleration` (`double`, default: -1)
-- `~ref_v` (`double`, default: 2) Desired speed
+- `prediction_horizon` (`int`, default: 10)
+- `delta_time` (`double`, default: 0.05) Time step of mpc
+- `loop_rate` (`int`, default: 10) Rate of the main loop
+- `max_mod_delta` (`double`, default: 0.44) Maximum angle delta that the wheels can turn in radians
+- `max_acceleration` (`double`, default: 1)
+- `max_decceleration` (`double`, default: -1)
+- `ref_v` (`double`, default: 2) Desired speed
 ###### Cost function weights
-- `~cte_weight` (`int`, default: 100) Path position offset
-- `~epsi_weight` (`int`, default: 100) Path heading offset
-- `~v_weight` (`int`, default: 15) Velocity
-- `~delta_weight` (`int`, default: 2000) Steering angle
-- `~a_weight` (`int`, default: 100) Acceleration
-- `~diff_delta_weight` (`int`, default: 100) Difference between sequential steering angle commands
-- `~diff_a_weight` (`int`, default: 10) Difference between sequential acceleration commands
+- `cte_weight` (`int`, default: 100) Path position offset
+- `epsi_weight` (`int`, default: 100) Path heading offset
+- `v_weight` (`int`, default: 15) Velocity
+- `delta_weight` (`int`, default: 2000) Steering angle
+- `a_weight` (`int`, default: 100) Acceleration
+- `diff_delta_weight` (`int`, default: 100) Difference between sequential steering angle commands
+- `diff_a_weight` (`int`, default: 10) Difference between sequential acceleration commands
 
 ## Listened transform
 `/map` - `/base_link`
