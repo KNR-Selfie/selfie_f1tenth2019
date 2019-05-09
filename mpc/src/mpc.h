@@ -10,12 +10,16 @@
 #include "Eigen-3.3.7/Eigen/Core"
 #include <vector>
 #include <algorithm>
+#include <cmath>
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
 #include <std_msgs/Float32.h>
 #define STATE_VARS 6
 #define ACTUATORS_VARS 2
-#define LF 0.2
+// length from rear axis to COG
+#define LF 0.15
+// total length
+#define LT 0.325
 
 using CppAD::AD;
 using Eigen::VectorXd;

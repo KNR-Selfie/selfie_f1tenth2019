@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include <tf/transform_listener.h>
+#include <cmath>
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float32.h"
 #include "nav_msgs/Path.h"
@@ -18,12 +19,15 @@ vector <geometry_msgs::PointStamped> path_points;
 void speedCallback(const std_msgs::Float32::ConstPtr& msg);
 void pathCallback(const nav_msgs::Path::ConstPtr& msg);
 VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order);
+//Convert v, delta and psi to Twist for use with f1 simulator
+geometry_msgs::Twist getTwist(double v, double delta, double psi);
 
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "mpc_node");
   ros::NodeHandle nh;
+  ros::Publisher f1sim_twist = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
   ros::Publisher target_speed = nh.advertise<std_msgs::Float64>("target_speed", 1000);
   ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
   ros::Publisher optimal_path = nh.advertise<nav_msgs::Path>("optimal_path", 1000);
@@ -157,4 +161,25 @@ VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order)
   auto result = Q.solve(yvals);
 
   return result;
+}
+
+// equations from https://borrelli.me.berkeley.edu/pdfpub/IV_KinematicMPC_jason.pdf
+geometry_msgs::Twist getTwist(double v, double delta, double psi)
+{
+  double beta = atan( (LT - LF)/LT * tan(delta) );
+  double ang_vel = v/(LT - LF) * sin(beta);
+  double vx = v * cos(psi + beta);
+  double vy = v * sin(psi + beta);
+
+  geometry_msgs::Twist cmd_vel;
+
+  cmd_vel.linear.x = vx;
+  cmd_vel.linear.y = vy;
+  cmd_vel.linear.z = 0;
+
+  cmd_vel.angular.x = 0;
+  cmd_vel.angular.y = 0;
+  cmd_vel.angular.z = ang_vel;
+
+  return cmd_vel;
 }
