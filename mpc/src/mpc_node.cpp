@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "mpc_node");
   ros::NodeHandle nh;
-  ros::Publisher f1sim_twist = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
+  ros::Publisher f1sim_cmd = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
   ros::Publisher target_speed = nh.advertise<std_msgs::Float64>("target_speed", 1000);
   ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
   ros::Publisher optimal_path = nh.advertise<nav_msgs::Path>("optimal_path", 1000);
@@ -109,6 +109,9 @@ int main(int argc, char** argv)
     steering_angle_msg.data = controls.delta;
     optimal_path_msg = controls.predicted_path;
 
+    geometry_msgs::Twist velocity_msg = getTwist(target_speed_msg.data, steering_angle_msg.data, yaw);
+
+    f1sim_cmd.publish(velocity_msg);
     target_speed.publish(target_speed_msg);
     steering_angle.publish(steering_angle_msg);
     optimal_path.publish(optimal_path_msg);
