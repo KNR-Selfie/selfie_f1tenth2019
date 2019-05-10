@@ -1,0 +1,93 @@
+#!/usr/bin/env python
+
+import rospy
+import pickle
+import sys
+import copy
+
+from nav_msgs.msg import Path
+from geometry_msgs.msg import Point, PoseStamped
+from visualization_msgs.msg import Marker, InteractiveMarker, InteractiveMarkerControl
+
+from interactive_markers.interactive_marker_server import InteractiveMarkerServer, InteractiveMarkerFeedback
+
+def publish_path(pathpoints):
+    path = Path()
+    path.header.frame_id = 'map'
+
+    for x, y in pathpoints:
+        pose = PoseStamped()
+        pose.header.frame_id = 'map'
+        pose.pose.position = Point(x, y, 0)
+        path.poses.append(pose)
+
+    path_pub.publish(path)
+
+def process_feedback(feedback):
+    waypoint_id = int(feedback.marker_name[9:])
+
+    if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
+        pathpoints[waypoint_id] = (feedback.pose.position.x, feedback.pose.position.y)
+        publish_path(pathpoints)
+
+def make_sphere(msg):
+    marker = Marker()
+
+    marker.type = Marker.SPHERE
+    marker.scale.x = msg.scale
+    marker.scale.y = msg.scale
+    marker.scale.z = msg.scale
+    marker.color.r = 1.0
+    marker.color.g = 0.3
+    marker.color.b = 0.0
+    marker.color.a = 1.0
+
+    return marker
+
+def make_waypoint_marker(id, x, y):
+    int_marker = InteractiveMarker()
+    int_marker.header.frame_id = 'map'
+    int_marker.pose.position = Point(x, y, 0)
+    int_marker.scale = 0.1
+
+    int_marker.name = 'waypoint_' + str(id)
+
+    control = InteractiveMarkerControl()
+    control.orientation.w = 1
+    control.orientation.x = 0
+    control.orientation.y = 1
+    control.orientation.z = 0
+    control.interaction_mode = InteractiveMarkerControl.MOVE_PLANE
+    int_marker.controls.append(copy.deepcopy(control))
+
+    control.markers.append( make_sphere(int_marker) )
+    control.always_visible = True
+    int_marker.controls.append(control)
+
+    return int_marker
+
+def publish_markers(server, path):
+
+    for i in range(len(path)):
+        marker = make_waypoint_marker(i, path[i][0], path[i][1])
+        server.insert(marker, process_feedback)
+
+    server.applyChanges()
+
+if __name__ == '__main__':
+    rospy.init_node('path_server')
+    marker_server = InteractiveMarkerServer('path_server')
+
+    # Read input file
+    filename = sys.argv[1]
+    with open(filename, 'rb') as f:
+        map_data = pickle.load(f)
+    pathpoints = map_data['pathpoints']
+
+    global path_pub
+    path_pub = rospy.Publisher('path', Path, latch=True, queue_size=1)
+
+    publish_path(pathpoints)
+    publish_markers(marker_server, pathpoints)
+
+    rospy.spin()
