@@ -113,9 +113,9 @@ if __name__ == '__main__':
     marker_server = InteractiveMarkerServer('path_server')
     menu_handler = MenuHandler()
 
-    menu_handler.insert('Remove marker', callback=remove_marker)
+    menu_handler.insert('Remove waypoint', callback=remove_marker)
 
-    insert_submenu = menu_handler.insert('Insert marker')
+    insert_submenu = menu_handler.insert('Insert waypoint')
     menu_handler.insert('Before current', parent=insert_submenu, callback=insert_before)
     menu_handler.insert('After current',  parent=insert_submenu, callback=insert_after)
 
