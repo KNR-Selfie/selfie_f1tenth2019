@@ -10,6 +10,7 @@ from geometry_msgs.msg import Point, PoseStamped
 from visualization_msgs.msg import Marker, InteractiveMarker, InteractiveMarkerControl
 
 from interactive_markers.interactive_marker_server import InteractiveMarkerServer, InteractiveMarkerFeedback
+from interactive_markers.menu_handler import MenuHandler
 
 def publish_path(pathpoints):
     path = Path()
@@ -23,12 +24,21 @@ def publish_path(pathpoints):
 
     path_pub.publish(path)
 
-def process_feedback(feedback):
-    waypoint_id = int(feedback.marker_name[9:])
+def get_waypoint_id(marker_name):
+    return int(marker_name[9:])
 
-    if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
-        pathpoints[waypoint_id] = (feedback.pose.position.x, feedback.pose.position.y)
-        publish_path(pathpoints)
+def remove_marker(feedback):
+    waypoint_id = get_waypoint_id(feedback.marker_name)
+    pathpoints.pop(waypoint_id)
+
+    publish_markers(pathpoints)
+    publish_path(pathpoints)
+
+def move_waypoint(feedback):
+    waypoint_id = get_waypoint_id(feedback.marker_name)
+    pathpoints[waypoint_id] = (feedback.pose.position.x, feedback.pose.position.y)
+
+    publish_path(pathpoints)
 
 def make_sphere(msg):
     marker = Marker()
@@ -66,17 +76,24 @@ def make_waypoint_marker(id, x, y):
 
     return int_marker
 
-def publish_markers(server, path):
+def publish_markers(pathpoints):
+    marker_server.clear()
 
-    for i in range(len(path)):
-        marker = make_waypoint_marker(i, path[i][0], path[i][1])
-        server.insert(marker, process_feedback)
+    for i in range(len(pathpoints)):
+        marker = make_waypoint_marker(i, pathpoints[i][0], pathpoints[i][1])
+        marker_server.insert(marker, move_waypoint)
+        menu_handler.apply(marker_server, marker.name)
 
-    server.applyChanges()
+    marker_server.applyChanges()
 
 if __name__ == '__main__':
     rospy.init_node('path_server')
+
+    global marker_server, menu_handler
     marker_server = InteractiveMarkerServer('path_server')
+    menu_handler = MenuHandler()
+
+    menu_handler.insert('Remove marker', callback=remove_marker)
 
     # Read input file
     filename = sys.argv[1]
@@ -88,6 +105,6 @@ if __name__ == '__main__':
     path_pub = rospy.Publisher('path', Path, latch=True, queue_size=1)
 
     publish_path(pathpoints)
-    publish_markers(marker_server, pathpoints)
+    publish_markers(pathpoints)
 
     rospy.spin()
