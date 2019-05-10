@@ -34,6 +34,26 @@ def remove_marker(feedback):
     publish_markers(pathpoints)
     publish_path(pathpoints)
 
+def insert_before(feedback):
+    waypoint_id = get_waypoint_id(feedback.marker_name)
+
+    x = (pathpoints[waypoint_id][0] + pathpoints[waypoint_id - 1][0]) * 0.5
+    y = (pathpoints[waypoint_id][1] + pathpoints[waypoint_id - 1][1]) * 0.5
+
+    pathpoints.insert(waypoint_id, (x, y))
+    publish_markers(pathpoints)
+    publish_path(pathpoints)
+
+def insert_after(feedback):
+    waypoint_id = get_waypoint_id(feedback.marker_name)
+
+    x = (pathpoints[waypoint_id][0] + pathpoints[waypoint_id + 1][0]) * 0.5
+    y = (pathpoints[waypoint_id][1] + pathpoints[waypoint_id + 1][1]) * 0.5
+
+    pathpoints.insert(waypoint_id + 1, (x, y))
+    publish_markers(pathpoints)
+    publish_path(pathpoints)
+
 def move_waypoint(feedback):
     waypoint_id = get_waypoint_id(feedback.marker_name)
     pathpoints[waypoint_id] = (feedback.pose.position.x, feedback.pose.position.y)
@@ -94,6 +114,10 @@ if __name__ == '__main__':
     menu_handler = MenuHandler()
 
     menu_handler.insert('Remove marker', callback=remove_marker)
+
+    insert_submenu = menu_handler.insert('Insert marker')
+    menu_handler.insert('Before current', parent=insert_submenu, callback=insert_before)
+    menu_handler.insert('After current',  parent=insert_submenu, callback=insert_after)
 
     # Read input file
     filename = sys.argv[1]
