@@ -18,7 +18,7 @@ size_t epsi_start;
 // Steering angle
 size_t delta_start;
 // Acceleration
-size_t a_start;
+//size_t a_start;
 
 
 MPC::MPC(Params p)
@@ -71,6 +71,7 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
 
 std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
 {
+  std::cout << "Im loop" << std::endl;
   bool ok = true;
   typedef CPPAD_TESTVECTOR(double) Dvector;
   /*
@@ -192,7 +193,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   ret_val.push_back(solution.x[delta_start]);
   ret_val.push_back(solution.x[v_start]);
 
-  for(size_t i = 0; i < N; ++i) std::cout << "delta: " << solution.x[delta_start + i] << "v: " << solution.x[v_start + i] << std::endl;
+  for(size_t i = 0; i < N - 1; ++i) std::cout << "delta: " << solution.x[delta_start + i] << " v: " << solution.x[v_start + i] << std::endl;
 
   // Also return the optimal positions to display predicted path in rviz
   for (size_t i = 0; i < N; ++i)
@@ -200,7 +201,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
     ret_val.push_back(solution.x[x_start + i]);
     ret_val.push_back(solution.x[y_start + i]);
   }
-
+  std::cout << "Loop end" << std::endl;
   return ret_val;
 }
 
@@ -238,7 +239,6 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
     fg[1 + x_start] = 0;
     fg[1 + y_start] = 0;
     fg[1 + psi_start] = 0;
-    fg[1 + v_start] = 0;
     fg[1 + cte_start] = 0;
     fg[1 + epsi_start] = 0;
 

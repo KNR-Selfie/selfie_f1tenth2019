@@ -70,6 +70,7 @@ int main(int argc, char** argv)
     if(path_points.empty())
     {
       ros::spinOnce();
+      cout << path_points.size() << endl;
       rate.sleep();
       continue;
     }
