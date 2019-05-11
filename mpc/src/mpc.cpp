@@ -275,7 +275,7 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         double dt = params.delta_time;
         fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
         fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
-        fg[1 + psi_start + t] = psi1 - (psi0 + v0 / LF * delta0 * dt);
+        fg[1 + psi_start + t] = psi1 - (psi0 + v0 / LT * delta0 * dt);
         fg[1 + v_start + t] = v1 - (v0 + a0 * dt);
         fg[1 + cte_start + t] = cte1 - (f1 - y1);
         fg[1 + epsi_start + t] = epsi1 - (psides1 - psi1);
