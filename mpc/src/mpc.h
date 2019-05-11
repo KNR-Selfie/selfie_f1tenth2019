@@ -30,7 +30,7 @@ struct Params
   int prediction_horizon;
   int cte_weight;
   int epsi_weight;
-  //int v_weight;
+  int v_weight;
   int delta_weight;
   int a_weight;
   int diff_delta_weight;
