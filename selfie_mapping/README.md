@@ -27,7 +27,7 @@ roslaunch selfie_mapping viz_mapping_2lidar.launch bag_filename:=${HOME}/path/ba
 ## Map saving
 To save map use the following command:
 ```
-rosrun map_server map_saver -f map_name
+rosrun map_server map_saver --occ 58 --free 48 -f map_name
 ```
 The map will be saved in the current path.
 
