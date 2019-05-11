@@ -47,6 +47,6 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(UPDATE_RATE)
     while not rospy.is_shutdown():
-        combined_offset = position_offset + L*math.cos(heading_offset)
+        combined_offset = position_offset + L*math.sin(heading_offset)
         combined_offset_pub.publish(combined_offset)
 rate.sleep()
