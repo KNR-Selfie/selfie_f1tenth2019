@@ -8,11 +8,15 @@
   <node pkg="selfie_odometry" type="selfie_odometry" name="selfie_odometry" />
 
   <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" />
+  <node pkg="topic_tools" type="relay" name="laser_relay_left" args="left_laser scan"/>
+  <node pkg="topic_tools" type="relay" name="laser_relay_right" args="right_laser scan"/>
   <node pkg="amcl" type="amcl" name="amcl" >
     <param name="use_map_topic" type="bool" value="true" />
   </node>
 
-  <node pkg="path_extractor" type="path_extractor.py" name="path_extractor" args="$(arg path_file)">
+  <node pkg="path_server" type="path_server" name="path_server" args="$(arg path_file)" />
+
+  <node pkg="path_extractor" type="path_extractor.py" name="path_extractor">
     <param name="path_points_backwards" type="int" value="0"/>
     <param name="path_points_forwards" type="int" value="5" />
     <param name="path_direction" type="bool" value="false" />
@@ -23,19 +27,6 @@
   <node pkg="offset_combiner" type="offset_combiner.py" name="offset_combiner" />
 
   <include file="$(find selfie_launch)/launch/subsystems/pid.launch" />
-  <node pkg="selfie_control" type="pid_tuner.py" name="pid_tuner">
-    <param name="pid_node" value="position_pid" />
-    <param name="nominal_kp" value="0.0075" />
-    <param name="nominal_ki" value="0.0" />
-    <param name="nominal_kd" value="0.005" />
-  </node>
-
-  <node pkg="speed_controller" type="speed_controller_node" name="speed_controller">
-    <param name="speed" type="double" value="182.5" />
-    <param name="distance" type="double" value="72795" />
-    <param name="angle" type="double" value="500" />
-    <param name="max_speed" type="double" value="2" />
-  </node>
 
   <node pkg="selfie_control" type="cmd_converter.py" name="cmd_converter">
     <param name="speed" value="1.0" />
