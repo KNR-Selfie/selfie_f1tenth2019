@@ -13,7 +13,7 @@
 using namespace std;
 using Eigen::VectorXd;
 
-double speed;
+double speed = 1;
 vector <geometry_msgs::PointStamped> path_points;
 
 void speedCallback(const std_msgs::Float32::ConstPtr& msg);
@@ -98,12 +98,13 @@ int main(int argc, char** argv)
     tfScalar yaw, pitch, roll;
     tf::Matrix3x3 rotation_mat(base_link_rot_qaternion);
     rotation_mat.getRPY(roll, pitch, yaw, 1);
-    state(2) = yaw;
+    state(2) = 0;
     state(3) = speed;
     state(4) = pathCoeffs[0];
     state(5) = CppAD::atan(pathCoeffs[1]);
 
     controls = mpc.getControls(pathCoeffs, state);
+    cout << "delta1: " << controls.delta << endl;
 
     std_msgs::Float64 target_speed_msg;
     std_msgs::Float64 steering_angle_msg;

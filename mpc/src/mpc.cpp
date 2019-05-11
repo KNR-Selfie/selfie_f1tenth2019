@@ -197,6 +197,8 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   ret_val.push_back(solution.x[delta_start]);
   ret_val.push_back(solution.x[a_start]);
 
+  for(size_t i = 0; i < N; ++i) std::cout << solution.x[delta_start + i] << std::endl;
+
   // Also return the optimal positions to display predicted path in rviz
   for (size_t i = 0; i < N; ++i)
   {
@@ -227,15 +229,15 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
     // Minimize the use of actuators.
     for (unsigned int t = 0; t < N - 1; ++t)
     {
-        //fg[0] += params.delta_weight * CppAD::pow(vars[delta_start + t], 2);
-      //  fg[0] += params.a_weight * CppAD::pow(vars[a_start + t], 2);
+        fg[0] += params.delta_weight * CppAD::pow(vars[delta_start + t], 2);
+        fg[0] += params.a_weight * CppAD::pow(vars[a_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
     for (unsigned int t = 0; t < N - 2; ++t)
     {
-        //fg[0] += params.diff_delta_weight * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-        //fg[0] += params.diff_a_weight * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+        fg[0] += params.diff_delta_weight * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+        fg[0] += params.diff_a_weight * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
 
     //Optimizer constraints - g(x)
@@ -273,8 +275,7 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         double dt = params.delta_time;
         fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
         fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
-        if(delta0 == 0) fg[1 + psi_start + t] = fg[psi_start + t];
-        else fg[1 + psi_start + t] = psi1 - (psi0 + v0 / LF * delta0 * dt);
+        fg[1 + psi_start + t] = psi1 - (psi0 + v0 / LF * delta0 * dt);
         fg[1 + v_start + t] = v1 - (v0 + a0 * dt);
         fg[1 + cte_start + t] = cte1 - (f1 - y1);
         fg[1 + epsi_start + t] = epsi1 - (psides1 - psi1);
