@@ -28,11 +28,10 @@ MPC::MPC(Params p)
   x_start = 0;
   y_start = x_start + N;
   psi_start = y_start + N;
-  v_start = psi_start + N;
-  cte_start = v_start + N;
+  cte_start = psi_start + N;
   epsi_start = cte_start + N;
   delta_start = epsi_start + N;
-  a_start = delta_start + N - 1;
+  v_start = delta_start + N - 1;
 }
 
 
@@ -46,7 +45,7 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
   //Return the controls
   Controls ret;
   ret.delta = solution[0];
-  ret.acceleration = solution[1];
+  ret.velocity = solution[1];
 
   size_t N = params.prediction_horizon;
   assert(N > 0);
@@ -82,12 +81,10 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   double y = state[1];
   //Angle with respect to the x(?) axis
   double psi = state[2];
-  //Velocity with respect to the map
-  double v = state[3];
   //Distance from the desired path
-  double cte = state[4];
+  double cte = state[3];
   //Heading offset from the desired path
-  double epsi = state[5];
+  double epsi = state[4];
 
   /*
    * Initiate indexing variables //TODO ogarnac zeby to bylo dzielone z fg_eval
@@ -127,8 +124,6 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   vars_upperbound[y_start] = y;
   vars_lowerbound[psi_start] = psi;
   vars_upperbound[psi_start] = psi;
-  vars_lowerbound[v_start] = v;
-  vars_upperbound[v_start] = v;
   vars_lowerbound[cte_start] = cte;
   vars_upperbound[cte_start] = cte;
   vars_lowerbound[epsi_start] = epsi;
@@ -136,17 +131,17 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
 
   // The upper and lower limits of delta are set to -25 and 25
   // degrees in radians
-  for (size_t i = delta_start; i < a_start; ++i)
+  for (size_t i = delta_start; i < v_start; ++i)
   {
     vars_lowerbound[i] = -1 * params.max_mod_delta;
     vars_upperbound[i] = params.max_mod_delta;
   }
 
   //Acceleration/decceleration upper and lower limits
-  for (size_t i = a_start; i < n_vars; ++i)
+  for (size_t i = v_start; i < n_vars; ++i)
   {
-    vars_lowerbound[i] = params.max_decceleration;
-    vars_upperbound[i] = params.max_acceleration;
+    vars_lowerbound[i] = params.min_v;
+    vars_upperbound[i] = params.max_v;
   }
 
   // Lower and upper limits for the constraints.
@@ -195,9 +190,9 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   // Return only the first actuator values
   std::vector<double> ret_val;
   ret_val.push_back(solution.x[delta_start]);
-  ret_val.push_back(solution.x[a_start]);
+  ret_val.push_back(solution.x[v_start]);
 
-  for(size_t i = 0; i < N; ++i) std::cout << solution.x[delta_start + i] << std::endl;
+  for(size_t i = 0; i < N; ++i) std::cout << "delta: " << solution.x[delta_start + i] << "v: " << solution.x[v_start + i] << std::endl;
 
   // Also return the optimal positions to display predicted path in rviz
   for (size_t i = 0; i < N; ++i)
@@ -223,21 +218,20 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
     {
         fg[0] += params.cte_weight * CppAD::pow(vars[cte_start + t], 2);
         fg[0] += params.epsi_weight * CppAD::pow(CppAD::sin(vars[epsi_start + t]), 2);
-        fg[0] += params.v_weight * CppAD::pow(vars[v_start + t] - params.ref_v, 2);
     }
 
     // Minimize the use of actuators.
     for (unsigned int t = 0; t < N - 1; ++t)
     {
         fg[0] += params.delta_weight * CppAD::pow(vars[delta_start + t], 2);
-        fg[0] += params.a_weight * CppAD::pow(vars[a_start + t], 2);
+        //fg[0] += params.v_weight * CppAD::pow(vars[a_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
     for (unsigned int t = 0; t < N - 2; ++t)
     {
         fg[0] += params.diff_delta_weight * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-        fg[0] += params.diff_a_weight * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+        fg[0] += params.diff_v_weight * CppAD::pow((vars[v_start + t + 1] - vars[v_start + t])/params.delta_time, 2);
     }
 
     //Optimizer constraints - g(x)
@@ -254,7 +248,6 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> x1 = vars[x_start + t];
         AD<double> y1 = vars[y_start + t];
         AD<double> psi1 = vars[psi_start + t];
-        AD<double> v1 = vars[v_start + t];
         AD<double> cte1 = vars[cte_start + t];
         AD<double> epsi1 = vars[epsi_start + t];
 
@@ -262,12 +255,11 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> x0 = vars[x_start + t - 1];
         AD<double> y0 = vars[y_start + t - 1];
         AD<double> psi0 = vars[psi_start + t - 1];
-        AD<double> v0 = vars[v_start + t - 1];
         AD<double> cte0 = vars[cte_start + t - 1];
         AD<double> epsi0 = vars[epsi_start + t - 1];
 
         AD<double> delta0 = vars[delta_start + t - 1];
-        AD<double> a0 = vars[a_start + t - 1];
+        AD<double> v0 = vars[v_start + t - 1];
 
         AD<double> f1 = pathCoeffs[0] + pathCoeffs[1] * x1 + pathCoeffs[2] * x1*x1;
         AD<double> psides1 = CppAD::atan(pathCoeffs[1] + 2 * pathCoeffs[2] * x1);
@@ -276,7 +268,6 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
         fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
         fg[1 + psi_start + t] = psi1 - (psi0 + v0 / LT * delta0 * dt);
-        fg[1 + v_start + t] = v1 - (v0 + a0 * dt);
         fg[1 + cte_start + t] = cte1 - (f1 - y1);
         fg[1 + epsi_start + t] = epsi1 - (psides1 - psi1);
     }

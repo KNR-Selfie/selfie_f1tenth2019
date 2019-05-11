@@ -14,7 +14,7 @@
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
 #include <std_msgs/Float32.h>
-#define STATE_VARS 6
+#define STATE_VARS 5
 #define ACTUATORS_VARS 2
 // length from rear axis to COG
 #define LF 0.19
@@ -30,22 +30,24 @@ struct Params
   int prediction_horizon;
   int cte_weight;
   int epsi_weight;
-  int v_weight;
+  //int v_weight;
   int delta_weight;
   int a_weight;
   int diff_delta_weight;
-  int diff_a_weight;
+  int diff_v_weight;
   double delta_time;
   double max_mod_delta;
-  double max_acceleration;
-  double max_decceleration;
+  //double max_acceleration;
+  //double max_decceleration;
   double ref_v;
+  double max_v;
+  double min_v;
 };
 
 // Struct that is returned by MPC
 struct Controls
 {
-  double acceleration;
+  double velocity;
   double delta;
   nav_msgs::Path predicted_path;
 };

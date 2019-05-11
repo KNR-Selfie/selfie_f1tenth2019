@@ -47,17 +47,17 @@ int main(int argc, char** argv)
   pnh.param("delta_time", p.delta_time, 0.2);
   pnh.param("loop_rate", loop_rate, 10);
   pnh.param("max_mod_delta", p.max_mod_delta, 0.44);
-  pnh.param("max_acceleration", p.max_acceleration, 1.0);
-  pnh.param("max_decceleration", p.max_decceleration, -1.0);
+  //pnh.param("max_acceleration", p.max_acceleration, 1.0);
+  //pnh.param("max_decceleration", p.max_decceleration, -1.0);
   pnh.param("cte_weight", p.cte_weight, 100);
   pnh.param("epsi_weight", p.epsi_weight, 100);
-  pnh.param("v_weight", p.v_weight, 150);
   pnh.param("delta_weight", p.delta_weight, 2000);
   pnh.param("a_weight", p.a_weight, 100);
   pnh.param("diff_delta_weight", p.diff_delta_weight, 100);
-  pnh.param("diff_a_weight", p.diff_a_weight, 10);
+  //pnh.param("diff_a_weight", p.diff_a_weight, 10);
   pnh.param("ref_v", p.ref_v, 4.0);
-  pnh.param("max_vel", max_vel, 0.5); 
+  pnh.param("max_v", p.max_v, 0.5);
+  pnh.param("min_v", p.min_v, -0.1);
 
 
   MPC mpc(p);
@@ -94,26 +94,25 @@ int main(int argc, char** argv)
     pathCoeffs = polyfit(x, y, POLYFIT_ORDER);
 
     VectorXd state(STATE_VARS);
-    state(0) = 0;
-    state(1) = 0;
+    state(0) = 0; //x
+    state(1) = 0; //y
     tf::Quaternion base_link_rot_qaternion = transform.getRotation();
     tfScalar yaw, pitch, roll;
     tf::Matrix3x3 rotation_mat(base_link_rot_qaternion);
     rotation_mat.getRPY(roll, pitch, yaw, 1);
-    state(2) = 0;
-    state(3) = speed;
-    state(4) = pathCoeffs[0];
-    state(5) = CppAD::atan(pathCoeffs[1]);
+    state(2) = 0; //psi
+    state(3) = pathCoeffs[0];
+    state(4) = CppAD::atan(pathCoeffs[1]);
 
     controls = mpc.getControls(pathCoeffs, state);
-    cout << "delta1: " << controls.delta << endl;
+    //cout << "delta1: " << controls.delta << endl;
 
     std_msgs::Float64 target_speed_msg;
     std_msgs::Float64 steering_angle_msg;
     nav_msgs::Path optimal_path_msg;
 
-    target_speed_msg.data = speed + controls.acceleration * p.delta_time;
-    target_speed_msg.data = min(max_vel, max(-1*max_vel, target_speed_msg.data));
+    target_speed_msg.data = controls.velocity;
+    //target_speed_msg.data = min(max_vel, max(-1*max_vel, target_speed_msg.data));
     steering_angle_msg.data = controls.delta;
     optimal_path_msg = controls.predicted_path;
 
