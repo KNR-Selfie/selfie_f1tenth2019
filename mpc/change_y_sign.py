@@ -6,7 +6,7 @@ pathpoints = map_data['pathpoints']
 
 data = {}
 data['pathpoints'] = [
-    (-1*pathpoints[i][1] -4, pathpoints[i][0] +3.5)
+    (-1*pathpoints[i][1] -3.5, pathpoints[i][0] +3.5)
     for i in range(len(pathpoints))
 ]
 
