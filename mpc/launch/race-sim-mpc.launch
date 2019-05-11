@@ -7,7 +7,7 @@
     <param name="path_direction" type="bool" value="true" />
   </node>
 
-  <node pkg="mpc" type="mpc" name="mpc">
+  <node pkg="mpc" type="mpc" name="mpc" output="screen">
     <param name="prediction_horizon" type="int" value="10" />
     <param name="delta_time" type="double" value="0.05" />
     <param name="loop_rate" type="int" value="10" />

@@ -66,6 +66,8 @@ int main(int argc, char** argv)
   {
     if(path_points.empty())
     {
+      ros::spinOnce();
+      rate.sleep();
       continue;
     }
     //get current state info
@@ -78,26 +80,27 @@ int main(int argc, char** argv)
       path_points_base_link.push_back(pointS);
     }
 
-    VectorXd x;
-    VectorXd y;
+    VectorXd x(path_points.size());
+    VectorXd y(path_points.size());
     for(unsigned int i = 0; i < path_points_base_link.size(); ++i)
     {
-      x << path_points_base_link[i].point.x;
-      y << path_points_base_link[i].point.y;
+      x(i) = path_points_base_link[i].point.x;
+      y(i) = path_points_base_link[i].point.y;
     }
     VectorXd pathCoeffs;
     pathCoeffs = polyfit(x, y, POLYFIT_ORDER);
 
     VectorXd state(STATE_VARS);
-    state<< transform.getOrigin().x(), transform.getOrigin().y();
+    state(0) = transform.getOrigin().x();
+    state(1) = transform.getOrigin().y();
     tf::Quaternion base_link_rot_qaternion = transform.getRotation();
     tfScalar yaw, pitch, roll;
     tf::Matrix3x3 rotation_mat(base_link_rot_qaternion);
     rotation_mat.getRPY(roll, pitch, yaw, 1);
-    state<<yaw;
-    state<<speed;
-    state<<pathCoeffs[0];
-    state<<CppAD::atan(pathCoeffs[1]);
+    state(2) = yaw;
+    state(3) = speed;
+    state(4) = pathCoeffs[0];
+    state(5) = CppAD::atan(pathCoeffs[1]);
 
     controls = mpc.getControls(pathCoeffs, state);
 
@@ -116,6 +119,7 @@ int main(int argc, char** argv)
     steering_angle.publish(steering_angle_msg);
     optimal_path.publish(optimal_path_msg);
 
+    ros::spinOnce();
     rate.sleep();
   }
   return 0;

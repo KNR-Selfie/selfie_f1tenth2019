@@ -114,7 +114,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
    */
   for (size_t i = 0; i < delta_start; ++i)
   {
-    vars_lowerbound[i] = 1.0e19;
+    vars_lowerbound[i] = -1.0e19;
     vars_upperbound[i] = 1.0e19;
   }
 
