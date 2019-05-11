@@ -5,7 +5,6 @@ import tf2_ros
 import tf_conversions
 import math
 import sys
-import pickle
 import numpy as np
 
 from std_msgs.msg import Float64
@@ -13,6 +12,16 @@ from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped
 
 UPDATE_RATE = 100
+
+pathpoints = None
+
+def update_path(msg):
+    global pathpoints
+
+    pathpoints = [
+        (pose.pose.position.x, pose.pose.position.y)
+        for pose in msg.poses
+    ]
 
 if __name__ == '__main__':
     rospy.init_node('path_extractor')
@@ -30,11 +39,8 @@ if __name__ == '__main__':
     else:
         direction = 1
 
-    # Read input file
-    filename = sys.argv[1]
-    with open(filename, 'rb') as f:
-        map_data = pickle.load(f)
-    pathpoints = map_data['pathpoints']
+    # Topic subscribers
+    rospy.Subscriber('path', Path, update_path)
 
     # Topic publishers
     path_pub = rospy.Publisher('closest_path_points', Path, queue_size=UPDATE_RATE)
@@ -47,6 +53,9 @@ if __name__ == '__main__':
     rate = rospy.Rate(UPDATE_RATE)
 
     while not rospy.is_shutdown():
+        # Do not proceed if the path has not been initialized
+        if not pathpoints: continue
+
         current_time = rospy.Time.now()
 
         try:
