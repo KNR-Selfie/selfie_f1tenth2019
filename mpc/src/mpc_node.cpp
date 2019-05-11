@@ -41,6 +41,7 @@ int main(int argc, char** argv)
 
   Params p;
   int loop_rate;
+  double max_vel;
 
   pnh.param("prediction_horizon", p.prediction_horizon, 10);
   pnh.param("delta_time", p.delta_time, 0.2);
@@ -56,6 +57,7 @@ int main(int argc, char** argv)
   pnh.param("diff_delta_weight", p.diff_delta_weight, 100);
   pnh.param("diff_a_weight", p.diff_a_weight, 10);
   pnh.param("ref_v", p.ref_v, 4.0);
+  pnh.param("max_vel", max_vel, 0.5); 
 
 
   MPC mpc(p);
@@ -111,6 +113,7 @@ int main(int argc, char** argv)
     nav_msgs::Path optimal_path_msg;
 
     target_speed_msg.data = speed + controls.acceleration * p.delta_time;
+    target_speed_msg.data = min(max_vel, max(-1*max_vel, target_speed_msg.data));
     steering_angle_msg.data = controls.delta;
     optimal_path_msg = controls.predicted_path;
 
