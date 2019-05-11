@@ -27,6 +27,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "mpc_node");
   ros::NodeHandle nh;
+  ros::NodeHandle pnh("~");
   ros::Publisher f1sim_cmd = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
   ros::Publisher target_speed = nh.advertise<std_msgs::Float64>("target_speed", 1000);
   ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
@@ -41,20 +42,20 @@ int main(int argc, char** argv)
   Params p;
   int loop_rate;
 
-  nh.param("prediction_horizon", p.prediction_horizon, 10);
-  nh.param("delta_time", p.delta_time, 0.05);
-  nh.param("loop_rate", loop_rate, 10);
-  nh.param("max_mod_delta", p.max_mod_delta, 0.44);
-  nh.param("max_acceleration", p.max_acceleration, 1.0);
-  nh.param("max_decceleration", p.max_decceleration, -1.0);
-  nh.param("cte_weight", p.cte_weight, 100);
-  nh.param("epsi_weight", p.epsi_weight, 100);
-  nh.param("v_weight", p.v_weight, 15);
-  nh.param("delta_weight", p.delta_weight, 2000);
-  nh.param("a_weight", p.a_weight, 100);
-  nh.param("diff_delta_weight", p.diff_delta_weight, 100);
-  nh.param("diff_a_weight", p.diff_a_weight, 10);
-  nh.param("ref_v", p.ref_v, 2.0);
+  pnh.param("prediction_horizon", p.prediction_horizon, 10);
+  pnh.param("delta_time", p.delta_time, 0.2);
+  pnh.param("loop_rate", loop_rate, 10);
+  pnh.param("max_mod_delta", p.max_mod_delta, 0.44);
+  pnh.param("max_acceleration", p.max_acceleration, 1.0);
+  pnh.param("max_decceleration", p.max_decceleration, -1.0);
+  pnh.param("cte_weight", p.cte_weight, 100);
+  pnh.param("epsi_weight", p.epsi_weight, 100);
+  pnh.param("v_weight", p.v_weight, 150);
+  pnh.param("delta_weight", p.delta_weight, 2000);
+  pnh.param("a_weight", p.a_weight, 100);
+  pnh.param("diff_delta_weight", p.diff_delta_weight, 100);
+  pnh.param("diff_a_weight", p.diff_a_weight, 10);
+  pnh.param("ref_v", p.ref_v, 4.0);
 
 
   MPC mpc(p);
@@ -91,8 +92,8 @@ int main(int argc, char** argv)
     pathCoeffs = polyfit(x, y, POLYFIT_ORDER);
 
     VectorXd state(STATE_VARS);
-    state(0) = transform.getOrigin().x();
-    state(1) = transform.getOrigin().y();
+    state(0) = 0;
+    state(1) = 0;
     tf::Quaternion base_link_rot_qaternion = transform.getRotation();
     tfScalar yaw, pitch, roll;
     tf::Matrix3x3 rotation_mat(base_link_rot_qaternion);
@@ -173,6 +174,7 @@ VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order)
 // equations from https://borrelli.me.berkeley.edu/pdfpub/IV_KinematicMPC_jason.pdf
 geometry_msgs::Twist getTwist(double v, double delta, double psi)
 {
+  cout << "delta: " << delta << endl;
   double beta = atan( (LT - LF)/LT * tan(delta) );
   double ang_vel = v/(LT - LF) * sin(beta);
   double vx = v * cos(psi + beta);
