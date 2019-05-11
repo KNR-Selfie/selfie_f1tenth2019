@@ -198,7 +198,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   ret_val.push_back(solution.x[a_start]);
 
   // Also return the optimal positions to display predicted path in rviz
-  for (size_t i = 1; i < N; ++i)
+  for (size_t i = 0; i < N; ++i)
   {
     ret_val.push_back(solution.x[x_start + i]);
     ret_val.push_back(solution.x[y_start + i]);
