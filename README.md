@@ -9,7 +9,7 @@
 - `/camera/depth/color/points` ([sensor_msgs/PointCloud2](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/PointCloud2.html))
 
 ## Published topics
-- `/enemy` ([geometry_msgs/Point](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/Point.html))
+- `/enemy` ([geometry_msgs/PointStamped](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/PointStamped.html))
 
 ## Parameters
 
