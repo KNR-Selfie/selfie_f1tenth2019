@@ -1,5 +1,5 @@
 # selfie_f1tenth2019
-# Selfie Real Time Enemy Localization System
+# Selfie Real Time Enemy Detection and Localization System
 
 
 ## Subscribed topics
