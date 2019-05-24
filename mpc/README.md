@@ -15,29 +15,29 @@
 - `delta_time` (`double`, default: 0.05) Time step of mpc
 - `loop_rate` (`int`, default: 10) Rate of the main loop
 - `max_mod_delta` (`double`, default: 0.44) Maximum angle delta that the wheels can turn in radians
-- `max_acceleration` (`double`, default: 1)
-- `max_decceleration` (`double`, default: -1)
 - `ref_v` (`double`, default: 2) Desired speed
+- `max_v` (`double`, default: 0.5) Maximum speed
+- `min_v` (`double`, default: -0.1) Minimum speed 
 ###### Cost function weights
 - `cte_weight` (`int`, default: 100) Path position offset
 - `epsi_weight` (`int`, default: 100) Path heading offset
 - `v_weight` (`int`, default: 15) Velocity
 - `delta_weight` (`int`, default: 2000) Steering angle
-- `a_weight` (`int`, default: 100) Acceleration
 - `diff_delta_weight` (`int`, default: 100) Difference between sequential steering angle commands
-- `diff_a_weight` (`int`, default: 10) Difference between sequential acceleration commands
+- `angular_v_weight` (`int`, default: 2000) Weight of delta*v
+- `diff_v_weight` (`int`, default: 40) Difference between sequential target_speed commands
 
 ## Listened transform
 `/map` - `/base_link`
 
 
 # Kontrolowane zmienne
-- target_speed
-- steering_angle
+- v - target_speed
+- delta - steering_angle
 
 # Stan pojazdu
 Na stan pojazdu skladaja sie:
-- polozenie na trasie
+- polozenie wzgledem sciezki
 - orientacja
 - predkosc
 - skret kol
@@ -64,10 +64,12 @@ Koszty skladowe:
 
 # Optimizer
 Minimalizuje koszt sekwencji komend (par kontrolowanych zmiennych) o dlugosci okreslonej przez parametr control_horizon.
-Dla każdej sekwencji komend w kroku dzialania programu wyznaczana jest suma kosztow odpowiadajacych im stanow az do prediction_horizon. Na podstawie gradientu kosztu w danym punkcie dla kolejnego kroku dobierana jest odpowiednia nowa sekwencja komend. Uwzglednia ograniczenia modelu.
+Dla każdej sekwencji komend w kroku dzialania programu wyznaczana jest suma kosztow odpowiadajacych im stanow az do prediction_horizon.
 
 
 ## CppAD
 Program korzysta z bibliotek CppAD i IPOPT.
 
 `sudo apt-get install cppad coinor-libipopt-dev`
+
+

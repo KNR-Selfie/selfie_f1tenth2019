@@ -232,7 +232,13 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
     for (unsigned int t = 0; t < N - 2; ++t)
     {
         fg[0] += params.diff_delta_weight * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-        fg[0] += params.diff_v_weight * CppAD::pow((vars[v_start + t + 1] - vars[v_start + t])/params.delta_time, 2);
+        fg[0] += params.diff_v_weight * CppAD::pow((vars[v_start + t + 1] - vars[v_start + t]), 2);
+    }
+
+    //Minimize angular velocity
+    for(unsigned int t = 0; t < N - 1; ++t)
+    {
+      fg[0] += params.angular_v_weight * CppAD::abs(vars[v_start + t] * vars[delta_start + t]);
     }
 
     //Optimizer constraints - g(x)

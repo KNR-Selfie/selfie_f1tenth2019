@@ -54,6 +54,8 @@ int main(int argc, char** argv)
   pnh.param("delta_weight", p.delta_weight, 2000);
   pnh.param("v_weight", p.v_weight, 100);
   pnh.param("diff_delta_weight", p.diff_delta_weight, 100);
+  pnh.param("angular_v_weight", p.angular_v_weight, 1000);
+  pnh.param("diff_v_weight", p.diff_v_weight, 40);
   //pnh.param("diff_a_weight", p.diff_a_weight, 10);
   pnh.param("ref_v", p.ref_v, 4.0);
   pnh.param("max_v", p.max_v, 0.5);
