@@ -1,18 +1,13 @@
 # selfie_f1tenth2019
-# Selfie Real Time Enemy Detection and Localization System
+# Selfie Real Time Obstacles Detection
 
+## Topics subscibed by points_publisher
+- `/points2d` ([selfie_msgs/Points2d])
+## Published topics by points_publisher
+- `/points3d` ([selfie_msgs/Points2d])
 
-## Subscribed topics
-- `points` ([selfie_msgs/Points])
-- `/left_laser` ([sensor_msgs/LaserScan](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/LaserScan.html))
-- `/right_laser` ([sensor_msgs/LaserScan](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/LaserScan.html))
-- `/map` ([nav_msgs/OccupancyGrid](http://docs.ros.org/melodic/api/nav_msgs/html/msg/OccupancyGrid.html))
+## Topics subscibed by obstacles_detector
 - `/camera/depth/color/points` ([sensor_msgs/PointCloud2](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/PointCloud2.html))
+## Topics published by obstacles_detector
+- `/points2d` ([selfie_msgs/Points2d])
 
-## Published topics
-- `/enemy` ([geometry_msgs/PointStamped](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/PointStamped.html))
-
-## Parameters
-
-## Listened transform
-`/map` - `/base_link` 
