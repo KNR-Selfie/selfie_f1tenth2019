@@ -1,4 +1,3 @@
-# selfie_f1tenth2019
 # Selfie Real Time Obstacles Detection
 points_publisher and obstacles_detector are coresponding nodes working together to provide a set of 3D points. Package provides a node with the same name that takes in camera image and cloud of points and calculates co-ordinates of detected obstacles.
 
