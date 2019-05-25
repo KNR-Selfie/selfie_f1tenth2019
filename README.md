@@ -6,7 +6,7 @@ points_publisher and obstacles_detector are coresponding nodes working together 
 - `/points2d` ([selfie_msgs/Points2d])
 - `/camera/depth/color/points` ([sensor_msgs/PointCloud2](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/PointCloud2.html))
 ## Published topics by points_publisher
-- `/points3d` ([selfie_msgs/Points2d])
+- `/points3d` ([selfie_msgs/Points3d])
 
 ## Topics subscibed by obstacles_detector
 - `/camera/color/image_raw`([sensor_msgs/Image](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html))
