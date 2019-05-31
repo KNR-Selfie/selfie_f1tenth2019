@@ -1,6 +1,6 @@
 <launch>
   <!-- RIGHT LASER -->
-  <node pkg="tf" type="static_transform_publisher" name="tf_base2rightlaser" args="0 -0.12 0  -1.57079632679 0 0  base_link right_laser 10"/>
+  <node pkg="tf" type="static_transform_publisher" name="tf_base2rightlaser" args="0 -0.126 0  -1.57079632679 0 0  base_link right_laser 10"/>
   <node name="hokuyo0" pkg="hokuyo_node" type="hokuyo_node">
        <param name="port" type="string" value="/dev/sensors/hokuyo_H1312790" />
   <param name="min_ang" type="double" value="-2.35619449019234492883" />
@@ -10,7 +10,7 @@
   </node>
 
   <!-- LEFT LASER -->
-  <node pkg="tf" type="static_transform_publisher" name="tf_base2leftlaser" args="-0.006 0.12 0  1.57079632679 0 0  base_link left_laser 10"/>
+  <node pkg="tf" type="static_transform_publisher" name="tf_base2leftlaser" args="0 0.126 0  1.57079632679 0 0  base_link left_laser 10"/>
   <node name="hokuyo1" pkg="hokuyo_node" type="hokuyo_node">
        <param name="port" type="string" value="/dev/sensors/hokuyo_H1402546" />
        <param name="frame_id" value="left_laser" />
