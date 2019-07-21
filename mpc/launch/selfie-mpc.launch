@@ -1,5 +1,16 @@
 <launch>
+  <arg name="map_file" />
   <arg name="path_file" />
+
+  <include file="$(find selfie_launch)/launch/subsystems/hardware.launch" />
+  <include file="$(find selfie_launch)/launch/subsystems/transforms.launch" />
+
+  <node pkg="selfie_odometry" type="selfie_odometry" name="selfie_odometry" />
+
+  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" />
+  <node pkg="amcl" type="amcl" name="amcl" >
+    <param name="use_map_topic" type="bool" value="true" />
+  </node>
 
   <node pkg="path_extractor" type="path_extractor.py" name="path_extractor" args="$(arg path_file)">
     <param name="path_points_backwards" type="int" value="0"/>
@@ -22,6 +33,10 @@
     <param name="a_weight" type="int" value="100" />
     <param name="diff_delta_weight" type="int" value="100" />
     <param name="diff_a_weight" type="int" value="10" />
+  </node>
+
+  <node pkg="selfie_control" type="cmd_converter.py" name="cmd_converter">
+    <param name="speed" value="1.0" />
   </node>
 
 </launch>
