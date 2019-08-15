@@ -1,23 +1,9 @@
 # Selfie mapping
 `Selfie mapping` package provides launch and configuration files. It uses Google Cartographer or Gmapping.
-# Gmapping
-```
-roslaunch selfie_mapping gmapping.launch 
-```
+
 # Google Cartographer
 ## Launching
 To build a map you can choose between two options. Each of them can use one or two lidars.
-#### Fast mapping
-Create a map as fast as possible with no visualisation.
-* one lidar
-```
-roslaunch selfie_mapping fast_mapping_1lidar.launch bag_filenames:=${HOME}/path/bag_filename.bag
-```
-* two lidars
-```
-roslaunch selfie_mapping fast_mapping_2lidar.launch bag_filenames:=${HOME}/path/bag_filename.bag
-```
-
 #### Viz mapping
 Launch mapping with real time visualisation in Rviz.
 * one lidar
@@ -28,6 +14,18 @@ roslaunch selfie_mapping viz_mapping_1lidar.launch bag_filename:=${HOME}/path/ba
 ```
 roslaunch selfie_mapping viz_mapping_2lidar.launch bag_filename:=${HOME}/path/bag_filename.bag
 ```
+
+#### Fast mapping
+Create a map as fast as possible with no visualisation.
+* one lidar
+```
+roslaunch selfie_mapping fast_mapping_1lidar.launch bag_filenames:=${HOME}/path/bag_filename.bag
+```
+* two lidars
+```
+roslaunch selfie_mapping fast_mapping_2lidar.launch bag_filenames:=${HOME}/path/bag_filename.bag
+```
+##### Fast mapping is not working at present.
 
 ## Map saving
 To save map use the following command:
@@ -51,3 +49,13 @@ The map will be saved in the current path.
 ## Provided tf transforms
 
 `~map` → `~odom`
+# Gmapping
+You can use this for mapping in real time or play data from rosbag.
+* two lidars
+```
+roslaunch selfie_mapping gmapping.launch 
+```
+* one lidar
+```
+rosrun gmapping slam_gmapping
+```
