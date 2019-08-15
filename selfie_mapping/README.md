@@ -1,5 +1,10 @@
 # Selfie mapping
-`Selfie mapping` package provides Google Cartographer's launch and configuration files.
+`Selfie mapping` package provides launch and configuration files. It uses Google Cartographer or Gmapping.
+# Gmapping
+```
+roslaunch selfie_mapping gmapping.launch 
+```
+# Google Cartographer
 ## Launching
 To build a map you can choose between two options. Each of them can use one or two lidars.
 #### Fast mapping
