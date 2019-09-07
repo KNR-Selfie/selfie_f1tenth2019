@@ -63,14 +63,14 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
 
   for (int i = 0; i < N; i++)
   {
-    poses[i].header.stamp = ros::Time::now();
-    poses[i].header.frame_id = "base_link";
+    polynomial_poses[i].header.stamp = ros::Time::now();
+    polynomial_poses[i].header.frame_id = "base_link";
     double x = 0.32;
-    poses[i].pose.position.x = x;
-    poses[i].pose.position.y = pathCoeffs[0] + pathCoeffs[1] * x + pathCoeffs[2]* x * x;
+    polynomial_poses[i].pose.position.x = x;
+    polynomial_poses[i].pose.position.y = pathCoeffs[0] + pathCoeffs[1] * x + pathCoeffs[2]* x * x;
   }
 
-  std::swap(ret.polynomial_path.poses, poses);
+  std::swap(ret.polynomial_path.poses, polynomial_poses);
   ret.polynomial_path.header.frame_id = "base_link";
   ret.polynomial_path.header.stamp = ros::Time::now();
 
