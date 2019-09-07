@@ -61,11 +61,13 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
     poses[i].pose.position.y = solution[2 * i + 3];
   }
 
+  double x = 0.32;
+
   for (int i = 0; i < N; i++)
   {
     polynomial_poses[i].header.stamp = ros::Time::now();
     polynomial_poses[i].header.frame_id = "base_link";
-    double x = 0.32;
+    x += x
     polynomial_poses[i].pose.position.x = x;
     polynomial_poses[i].pose.position.y = pathCoeffs[0] + pathCoeffs[1] * x + pathCoeffs[2]* x * x;
   }
