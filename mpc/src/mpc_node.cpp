@@ -185,10 +185,14 @@ VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order)
     }
   }
 
-  for(i = yvals.size() - valid_points; i > 0; --i) yvals.pop_back();
+  VectorXd yvals1(valid_points);
+  for(int i = 0; i < valid_points; ++i)
+  {
+    yvals1[i] = yvals[i];
+  }
 
   auto Q = A.householderQr();
-  auto result = Q.solve(yvals);
+  auto result = Q.solve(yvals1);
 
   return result;
 }
