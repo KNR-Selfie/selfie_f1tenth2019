@@ -251,6 +251,12 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         fg[0] += params.diff_v_weight * CppAD::pow((vars[v_start + t + 1] - vars[v_start + t])/params.delta_time, 2);
     }
 
+    // Make cornering safer
+    for (unsigned int t = 0; t < N - 1; ++t)
+    {
+        fg[0] += params.cornering_safety_weight * CppAD::pow(vars[v_start + t] * vars[v_start + t] * vars[delta_start + t], 2);
+    }
+
     //Optimizer constraints - g(x)
     fg[1 + x_start] = 0;
     fg[1 + y_start] = 0;

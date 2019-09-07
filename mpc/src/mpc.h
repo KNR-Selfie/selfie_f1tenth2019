@@ -42,6 +42,7 @@ struct Params
   double ref_v;
   double max_v;
   double min_v;
+  double cornering_safety_weight;
 };
 
 // Struct that is returned by MPC
