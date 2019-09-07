@@ -51,6 +51,7 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
   assert(N > 0);
   //Return predicted path
   std::vector <geometry_msgs::PoseStamped> poses(N);
+  std::vector <geometry_msgs::PoseStamped> polynomial_poses(N);
 
   for (int i = 0; i < N; i++)
   {
@@ -59,6 +60,19 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
     poses[i].pose.position.x = solution[2 * i + 2];
     poses[i].pose.position.y = solution[2 * i + 3];
   }
+
+  for (int i = 0; i < N; i++)
+  {
+    poses[i].header.stamp = ros::Time::now();
+    poses[i].header.frame_id = "base_link";
+    double x = 0.32;
+    poses[i].pose.position.x = x;
+    poses[i].pose.position.y = pathCoeffs[0] + pathCoeffs[1] * x + pathCoeffs[2]* x * x;
+  }
+
+  std::swap(ret.polynomial_path.poses, poses);
+  ret.polynomial_path.header.frame_id = "base_link";
+  ret.polynomial_path.header.stamp = ros::Time::now();
 
   std::swap(ret.predicted_path.poses, poses);
   ret.predicted_path.header.frame_id = "base_link";

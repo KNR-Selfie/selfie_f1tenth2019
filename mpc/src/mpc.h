@@ -50,6 +50,7 @@ struct Controls
   double velocity;
   double delta;
   nav_msgs::Path predicted_path;
+  nav_msgs::Path polynomial_path;
 };
 
 //Interface for interactions with ros
