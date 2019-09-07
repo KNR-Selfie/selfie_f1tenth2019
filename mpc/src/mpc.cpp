@@ -61,7 +61,7 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
     poses[i].pose.position.y = solution[2 * i + 3];
   }
 
-  double x = 0.32;
+  double x = 0.1;
 
   for (int i = 0; i < N; i++)
   {
