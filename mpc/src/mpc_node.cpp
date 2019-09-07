@@ -161,13 +161,25 @@ VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order)
   assert(xvals.size() == yvals.size());
   assert(order >= 1 && order <= xvals.size() - 1);
 
-  Eigen::MatrixXd A(xvals.size(), order + 1);
+  double x_max = xvals[0];
+  int valid_points = 1;
+  for(int i = 1; i < xvals.size(); ++i)
+  {
+    if(xvals[i] > xvals[i - 1])
+    {
+      ++valid_points;
+      x_max = xvals[i];
+    }
+  }
 
-  for (int i = 0; i < xvals.size(); ++i) {
+
+  Eigen::MatrixXd A(valid_points, order + 1);
+
+  for (int i = 0; i < valid_points; ++i) {
     A(i, 0) = 1.0;
   }
 
-  for (int j = 0; j < xvals.size(); ++j) {
+  for (int j = 0; j < valid_points; ++j) {
     for (int i = 0; i < order; ++i) {
       A(j, i + 1) = A(j, i) * xvals(j);
     }
