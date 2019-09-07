@@ -108,9 +108,25 @@ def pose_callback(msg):
     if theta_2 > math.pi:
         theta_2 -= 2*math.pi
 
+    global inside_start_area
     if -math.pi/2 <= theta_1 and theta_1 <= 0 and \
         math.pi/2 <= theta_2 and theta_2 <= math.pi:
-        rospy.loginfo('Start area reached')
+ 
+        inside_start_area = True
+    else:
+        if inside_start_area: starting_line_crossed() 
+        inside_start_area = False
+        
+def starting_line_crossed():
+    rospy.loginfo('Starting line crossed')
+    current_time = rospy.get_rostime()
+
+    global time_left_start_area
+    if time_left_start_area is not None:
+        time_delta = current_time - time_left_start_area
+        rospy.loginfo('LAP TIME: {:6.3f}s'.format(time_delta.to_sec()))
+ 
+    time_left_start_area = current_time
 
 if __name__ == '__main__':
     rospy.init_node('laptime_measurer')
@@ -119,6 +135,12 @@ if __name__ == '__main__':
     marker_server = InteractiveMarkerServer('laptime_measurer_server')
 
     publish_markers()
+
+    global inside_start_area
+    inside_start_area = False
+
+    global time_left_start_area
+    time_left_start_area = None
 
     rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, pose_callback)
 
