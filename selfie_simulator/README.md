@@ -15,7 +15,7 @@ catkin_make
 source devel/setup.bash
 roslaunch ackermann_vehicle_gazebo ackermann_vehicle.launch
 ```
-
+I normalnie se odpal jakiegoś rosbaga z topikiem /drive i porównaj z rvizem. Pozdro ziomeczku
 ## Topics subscibed
 - `/drive` ([ackermann_msgs/AckermannDriveStamped](http://docs.ros.org/jade/api/ackermann_msgs/html/msg/AckermannDriveStamped.html))
 ## Published topics by points_publisher
