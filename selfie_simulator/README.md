@@ -4,9 +4,9 @@ mkdir ~/catkin_ws
 cd ~/catkin_ws
 mkdir src
 cd src
-git clone https://github.com/kdjosk/gazebo_plugin.git
-cd gazebo_plugin
-git checkout devel
+git clone https://github.com/KNR-Selfie/selfie_f1tenth2019.git
+cd selfie_f1tenth2019
+git checkout selfie_simulator
 cd ../..
 sudo apt-get install ros-kinetic-ackermann-msgs
 sudo apt-get install ros-kinetic-controller-manager
