@@ -1,7 +1,7 @@
 
 ```bash
-mkdir ~/catkin_ws1
-cd ~/catkin_ws1
+mkdir ~/catkin_ws
+cd ~/catkin_ws
 mkdir src
 cd src
 git clone https://github.com/kdjosk/gazebo_plugin.git
