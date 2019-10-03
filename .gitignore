@@ -2,3 +2,4 @@
 path_extractor/scripts/frames.gv
 path_extractor/scripts/frames.pdf
 path_extractor/scripts/path_data.pkl
+selfie_mapping/metadata/*
