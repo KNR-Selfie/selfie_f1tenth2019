@@ -29,7 +29,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
   ros::NodeHandle pnh("~");
   ros::Publisher f1sim_cmd = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
-  ros::Publisher target_speed = nh.advertise<std_msgs::Float64>("target_speed", 1000);
+  ros::Publisher target_speed = nh.advertise<std_msgs::Float64>("torque", 1000);
   ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
   ros::Publisher optimal_path = nh.advertise<nav_msgs::Path>("optimal_path", 1000);
   ros::Publisher polynomial_path = nh.advertise<nav_msgs::Path>("polynomial_path", 1000);
@@ -60,6 +60,8 @@ int main(int argc, char** argv)
   pnh.param("max_v", p.max_v, 0.5);
   pnh.param("min_v", p.min_v, -0.1);
   pnh.param("cornering_safety_weight", p.cornering_safety_weight, 1.0);
+  pnh.param("vehicle_mass", p.vehicle_mass, 1.0);
+  pnh.param("tyre_radius", p.tyre_radius, 0.05);
 
 
   MPC mpc(p);
@@ -106,25 +108,26 @@ int main(int argc, char** argv)
     state(2) = 0; //psi
     state(3) = pathCoeffs[0];
     state(4) = CppAD::atan(pathCoeffs[1]);
+    state(5) = speed;
 
     controls = mpc.getControls(pathCoeffs, state);
     //cout << "delta1: " << controls.delta << endl;
 
-    std_msgs::Float64 target_speed_msg;
+    std_msgs::Float64 target_torque_msg;
     std_msgs::Float64 steering_angle_msg;
     nav_msgs::Path optimal_path_msg;
     nav_msgs::Path polynomial_path_msg;
 
-    target_speed_msg.data = controls.velocity;
+    target_torque_msg.data = controls.F;
     //target_speed_msg.data = min(max_vel, max(-1*max_vel, target_speed_msg.data));
     steering_angle_msg.data = controls.delta;
     optimal_path_msg = controls.predicted_path;
     polynomial_path_msg = controls.polynomial_path;
 
-    geometry_msgs::Twist velocity_msg = getTwist(target_speed_msg.data, steering_angle_msg.data, yaw);
+    geometry_msgs::Twist velocity_msg = getTwist(target_torque_msg.data, steering_angle_msg.data, yaw);
 
     f1sim_cmd.publish(velocity_msg);
-    target_speed.publish(target_speed_msg);
+    target_speed.publish(target_torque_msg);
     steering_angle.publish(steering_angle_msg);
     optimal_path.publish(optimal_path_msg);
     polynomial_path.publish(polynomial_path_msg);

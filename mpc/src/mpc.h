@@ -34,7 +34,7 @@ struct Params
   int delta_weight;
   int a_weight;
   int diff_delta_weight;
-  int diff_v_weight;
+  int diff_F_weight;
   double delta_time;
   double max_mod_delta;
   //double max_acceleration;
