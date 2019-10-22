@@ -42,6 +42,7 @@ struct Params
   double ref_v;
   double max_v;
   double min_v;
+  double cornering_safety_weight;
 };
 
 // Struct that is returned by MPC
@@ -50,6 +51,7 @@ struct Controls
   double velocity;
   double delta;
   nav_msgs::Path predicted_path;
+  nav_msgs::Path polynomial_path;
 };
 
 //Interface for interactions with ros

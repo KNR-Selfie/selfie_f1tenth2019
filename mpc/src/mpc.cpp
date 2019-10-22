@@ -51,6 +51,7 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
   assert(N > 0);
   //Return predicted path
   std::vector <geometry_msgs::PoseStamped> poses(N);
+  std::vector <geometry_msgs::PoseStamped> polynomial_poses(N);
 
   for (int i = 0; i < N; i++)
   {
@@ -59,6 +60,21 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
     poses[i].pose.position.x = solution[2 * i + 2];
     poses[i].pose.position.y = solution[2 * i + 3];
   }
+
+  double x = 0.1;
+
+  for (int i = 0; i < N; i++)
+  {
+    polynomial_poses[i].header.stamp = ros::Time::now();
+    polynomial_poses[i].header.frame_id = "base_link";
+    x += x;
+    polynomial_poses[i].pose.position.x = x;
+    polynomial_poses[i].pose.position.y = pathCoeffs[0] + pathCoeffs[1] * x + pathCoeffs[2]* x * x;
+  }
+
+  std::swap(ret.polynomial_path.poses, polynomial_poses);
+  ret.polynomial_path.header.frame_id = "base_link";
+  ret.polynomial_path.header.stamp = ros::Time::now();
 
   std::swap(ret.predicted_path.poses, poses);
   ret.predicted_path.header.frame_id = "base_link";
@@ -233,6 +249,12 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
     {
         fg[0] += params.diff_delta_weight * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
         fg[0] += params.diff_v_weight * CppAD::pow((vars[v_start + t + 1] - vars[v_start + t])/params.delta_time, 2);
+    }
+
+    // Make cornering safer
+    for (unsigned int t = 0; t < N - 1; ++t)
+    {
+        fg[0] += params.cornering_safety_weight * CppAD::pow(vars[v_start + t] * vars[v_start + t] * vars[delta_start + t], 2);
     }
 
     //Optimizer constraints - g(x)

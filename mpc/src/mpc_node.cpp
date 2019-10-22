@@ -32,6 +32,7 @@ int main(int argc, char** argv)
   ros::Publisher target_speed = nh.advertise<std_msgs::Float64>("target_speed", 1000);
   ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
   ros::Publisher optimal_path = nh.advertise<nav_msgs::Path>("optimal_path", 1000);
+  ros::Publisher polynomial_path = nh.advertise<nav_msgs::Path>("polynomial_path", 1000);
   ros::Subscriber speed_sub = nh.subscribe("speed", 1000, speedCallback);
   ros::Subscriber closest_path_points = nh.subscribe("closest_path_points", 1000, pathCallback);
 
@@ -58,6 +59,7 @@ int main(int argc, char** argv)
   pnh.param("ref_v", p.ref_v, 4.0);
   pnh.param("max_v", p.max_v, 0.5);
   pnh.param("min_v", p.min_v, -0.1);
+  pnh.param("cornering_safety_weight", p.cornering_safety_weight, 1.0);
 
 
   MPC mpc(p);
@@ -111,11 +113,13 @@ int main(int argc, char** argv)
     std_msgs::Float64 target_speed_msg;
     std_msgs::Float64 steering_angle_msg;
     nav_msgs::Path optimal_path_msg;
+    nav_msgs::Path polynomial_path_msg;
 
     target_speed_msg.data = controls.velocity;
     //target_speed_msg.data = min(max_vel, max(-1*max_vel, target_speed_msg.data));
     steering_angle_msg.data = controls.delta;
     optimal_path_msg = controls.predicted_path;
+    polynomial_path_msg = controls.polynomial_path;
 
     geometry_msgs::Twist velocity_msg = getTwist(target_speed_msg.data, steering_angle_msg.data, yaw);
 
@@ -123,6 +127,7 @@ int main(int argc, char** argv)
     target_speed.publish(target_speed_msg);
     steering_angle.publish(steering_angle_msg);
     optimal_path.publish(optimal_path_msg);
+    polynomial_path.publish(polynomial_path_msg);
 
     ros::spinOnce();
     rate.sleep();
@@ -157,20 +162,38 @@ VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order)
   assert(xvals.size() == yvals.size());
   assert(order >= 1 && order <= xvals.size() - 1);
 
-  Eigen::MatrixXd A(xvals.size(), order + 1);
+  double x_max = xvals[0];
+  int valid_points = 1;
+  for(int i = 1; i < xvals.size(); ++i)
+  {
+    if(xvals[i] > xvals[i - 1])
+    {
+      ++valid_points;
+      x_max = xvals[i];
+    }
+  }
 
-  for (int i = 0; i < xvals.size(); ++i) {
+
+  Eigen::MatrixXd A(valid_points, order + 1);
+
+  for (int i = 0; i < valid_points; ++i) {
     A(i, 0) = 1.0;
   }
 
-  for (int j = 0; j < xvals.size(); ++j) {
+  for (int j = 0; j < valid_points; ++j) {
     for (int i = 0; i < order; ++i) {
       A(j, i + 1) = A(j, i) * xvals(j);
     }
   }
 
+  VectorXd yvals1(valid_points);
+  for(int i = 0; i < valid_points; ++i)
+  {
+    yvals1[i] = yvals[i];
+  }
+
   auto Q = A.householderQr();
-  auto result = Q.solve(yvals);
+  auto result = Q.solve(yvals1);
 
   return result;
 }
