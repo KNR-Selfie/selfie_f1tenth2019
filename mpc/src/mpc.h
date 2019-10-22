@@ -14,7 +14,7 @@
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
 #include <std_msgs/Float32.h>
-#define STATE_VARS 5
+#define STATE_VARS 6
 #define ACTUATORS_VARS 2
 // length from rear axis to COG
 #define LF 0.19
@@ -43,12 +43,14 @@ struct Params
   double max_v;
   double min_v;
   double cornering_safety_weight;
+  double vehicle_mass;
+  double tyre_radius;
 };
 
 // Struct that is returned by MPC
 struct Controls
 {
-  double velocity;
+  double F;
   double delta;
   nav_msgs::Path predicted_path;
   nav_msgs::Path polynomial_path;

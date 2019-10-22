@@ -18,6 +18,7 @@ size_t epsi_start;
 // Steering angle
 size_t delta_start;
 // Acceleration
+size_t F_start;
 //size_t a_start;
 
 
@@ -30,8 +31,9 @@ MPC::MPC(Params p)
   psi_start = y_start + N;
   cte_start = psi_start + N;
   epsi_start = cte_start + N;
-  delta_start = epsi_start + N;
-  v_start = delta_start + N - 1;
+  v_start = epsi_start + N;
+  delta_start = v_start + N;
+  F_start = delta_start + N - 1;
 }
 
 
@@ -45,7 +47,7 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
   //Return the controls
   Controls ret;
   ret.delta = solution[0];
-  ret.velocity = solution[1];
+  ret.F = solution[1];
 
   size_t N = params.prediction_horizon;
   assert(N > 0);
@@ -102,6 +104,8 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   double cte = state[3];
   //Heading offset from the desired path
   double epsi = state[4];
+  //Velocity
+  double v = state[5];
 
   /*
    * Initiate indexing variables //TODO ogarnac zeby to bylo dzielone z fg_eval
@@ -145,6 +149,8 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   vars_upperbound[cte_start] = cte;
   vars_lowerbound[epsi_start] = epsi;
   vars_upperbound[epsi_start] = epsi;
+  vars_lowerbound[v_start] = v;
+  vars_upperbound[v_start] = v;
 
   // The upper and lower limits of delta are set to -25 and 25
   // degrees in radians
@@ -154,7 +160,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
     vars_upperbound[i] = params.max_mod_delta;
   }
 
-  //Acceleration/decceleration upper and lower limits
+  //velocity upper and lower limits
   for (size_t i = v_start; i < n_vars; ++i)
   {
     vars_lowerbound[i] = params.min_v;
@@ -207,9 +213,9 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   // Return only the first actuator values
   std::vector<double> ret_val;
   ret_val.push_back(solution.x[delta_start]);
-  ret_val.push_back(solution.x[v_start]);
+  ret_val.push_back(solution.x[F_start]);
 
-  for(size_t i = 0; i < N - 1; ++i) std::cout << "delta: " << solution.x[delta_start + i] << " v: " << solution.x[v_start + i] << std::endl;
+  for(size_t i = 0; i < N - 1; ++i) std::cout << "delta: " << solution.x[delta_start + i] << " F: " << solution.x[F_start + i] << std::endl;
 
   // Also return the optimal positions to display predicted path in rviz
   for (size_t i = 0; i < N; ++i)
@@ -237,7 +243,6 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         fg[0] += params.epsi_weight * CppAD::pow(CppAD::sin(vars[epsi_start + t]), 2);
     }
 
-    // Minimize the use of actuators.
     for (unsigned int t = 0; t < N - 1; ++t)
     {
         fg[0] += params.delta_weight * CppAD::pow(vars[delta_start + t], 2);
@@ -248,7 +253,7 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
     for (unsigned int t = 0; t < N - 2; ++t)
     {
         fg[0] += params.diff_delta_weight * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-        fg[0] += params.diff_v_weight * CppAD::pow((vars[v_start + t + 1] - vars[v_start + t])/params.delta_time, 2);
+        fg[0] += params.diff_F_weight * CppAD::pow((vars[F_start + t + 1] - vars[F_start + t])/params.delta_time, 2);
     }
 
     // Make cornering safer
@@ -279,18 +284,23 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> psi0 = vars[psi_start + t - 1];
         AD<double> cte0 = vars[cte_start + t - 1];
         AD<double> epsi0 = vars[epsi_start + t - 1];
+        AD<double> v0 = vars[v_start + t - 1];
 
         AD<double> delta0 = vars[delta_start + t - 1];
-        AD<double> v0 = vars[v_start + t - 1];
+        AD<double> F0 = vars[F_start + t - 1];
 
         AD<double> f1 = pathCoeffs[0] + pathCoeffs[1] * x1 + pathCoeffs[2] * x1*x1;
         AD<double> psides1 = CppAD::atan(pathCoeffs[1] + 2 * pathCoeffs[2] * x1);
 
+        // Calculate future state
         double dt = params.delta_time;
+        double m = params.vehicle_mass;
+        double R = params.tyre_radius;
         fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
         fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
         fg[1 + psi_start + t] = psi1 - (psi0 + v0 / LT * delta0 * dt);
         fg[1 + cte_start + t] = cte1 - (f1 - y1);
         fg[1 + epsi_start + t] = epsi1 - (psides1 - psi1);
+        fg[1 + v_start + t] = m * F0 * dt / R;
     }
 }
