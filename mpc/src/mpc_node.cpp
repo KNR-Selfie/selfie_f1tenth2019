@@ -3,6 +3,7 @@
 #include <cmath>
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/Float64MultiArray.h"
 #include "nav_msgs/Path.h"
 #include "geometry_msgs/PointStamped.h"
 #include "Eigen-3.3.7/Eigen/QR"
@@ -28,6 +29,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "mpc_node");
   ros::NodeHandle nh;
   ros::NodeHandle pnh("~");
+  ros::Publisher model_control_pub = nh.advertise<std_msgs::Float64MultiArray>("model_control", 1000);
   ros::Publisher f1sim_cmd = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
   ros::Publisher target_speed = nh.advertise<std_msgs::Float64>("torque", 1000);
   ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
@@ -55,6 +57,7 @@ int main(int argc, char** argv)
   pnh.param("delta_weight", p.delta_weight, 2000);
   pnh.param("v_weight", p.v_weight, 100);
   pnh.param("diff_delta_weight", p.diff_delta_weight, 100);
+  pnh.param("diff_F_weight", p.diff_F_weight);
   //pnh.param("diff_a_weight", p.diff_a_weight, 10);
   pnh.param("ref_v", p.ref_v, 4.0);
   pnh.param("max_v", p.max_v, 0.5);
@@ -112,17 +115,20 @@ int main(int argc, char** argv)
 
     controls = mpc.getControls(pathCoeffs, state);
     //cout << "delta1: " << controls.delta << endl;
-
+    cout << controls.F << endl;
     std_msgs::Float64 target_torque_msg;
     std_msgs::Float64 steering_angle_msg;
     nav_msgs::Path optimal_path_msg;
     nav_msgs::Path polynomial_path_msg;
+    std_msgs::Float64MultiArray model_control_msg;
 
     target_torque_msg.data = controls.F;
     //target_speed_msg.data = min(max_vel, max(-1*max_vel, target_speed_msg.data));
     steering_angle_msg.data = controls.delta;
     optimal_path_msg = controls.predicted_path;
     polynomial_path_msg = controls.polynomial_path;
+    model_control_msg.data[0] = controls.delta;
+    model_control_msg.data[1] = controls.F;
 
     geometry_msgs::Twist velocity_msg = getTwist(target_torque_msg.data, steering_angle_msg.data, yaw);
 
@@ -131,6 +137,7 @@ int main(int argc, char** argv)
     steering_angle.publish(steering_angle_msg);
     optimal_path.publish(optimal_path_msg);
     polynomial_path.publish(polynomial_path_msg);
+    model_control_pub.publish(model_control_msg);
 
     ros::spinOnce();
     rate.sleep();
