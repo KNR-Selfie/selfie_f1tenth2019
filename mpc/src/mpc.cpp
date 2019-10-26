@@ -277,7 +277,7 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> psi1 = vars[psi_start + t];
         AD<double> cte1 = vars[cte_start + t];
         AD<double> epsi1 = vars[epsi_start + t];
-
+        AD<double> v1 = vars[v_start + t];
         // The state at time t.
         AD<double> x0 = vars[x_start + t - 1];
         AD<double> y0 = vars[y_start + t - 1];
@@ -301,6 +301,6 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         fg[1 + psi_start + t] = psi1 - (psi0 + v0 / LT * delta0 * dt);
         fg[1 + cte_start + t] = cte1 - (f1 - y1);
         fg[1 + epsi_start + t] = epsi1 - (psides1 - psi1);
-        fg[1 + v_start + t] = m * F0 * dt / R;
+        fg[1 + v_start + t] = v1 - (F0 * dt) / (m * R);
     }
 }

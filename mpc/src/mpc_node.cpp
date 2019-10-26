@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include <tf/transform_listener.h>
 #include <cmath>
+#include <stdio.h>
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float64MultiArray.h"
@@ -72,6 +73,8 @@ int main(int argc, char** argv)
   double x, y, orientation;
   Controls controls;
 
+  bool first_loop = true;
+
   while(ros::ok())
   {
     if(path_points.empty())
@@ -114,7 +117,6 @@ int main(int argc, char** argv)
     state(5) = speed;
 
     controls = mpc.getControls(pathCoeffs, state);
-    //cout << "delta1: " << controls.delta << endl;
     cout << controls.F << endl;
     std_msgs::Float64 target_torque_msg;
     std_msgs::Float64 steering_angle_msg;
@@ -127,17 +129,24 @@ int main(int argc, char** argv)
     steering_angle_msg.data = controls.delta;
     optimal_path_msg = controls.predicted_path;
     polynomial_path_msg = controls.polynomial_path;
+    model_control_msg.data.resize(2);
+    if(first_loop) controls.delta = 0;
+    first_loop = false;
     model_control_msg.data[0] = controls.delta;
     model_control_msg.data[1] = controls.F;
 
-    geometry_msgs::Twist velocity_msg = getTwist(target_torque_msg.data, steering_angle_msg.data, yaw);
 
-    f1sim_cmd.publish(velocity_msg);
+    //geometry_msgs::Twist velocity_msg = getTwist(target_torque_msg.data, steering_angle_msg.data, yaw);
+
+    //f1sim_cmd.publish(velocity_msg);
     target_speed.publish(target_torque_msg);
     steering_angle.publish(steering_angle_msg);
     optimal_path.publish(optimal_path_msg);
     polynomial_path.publish(polynomial_path_msg);
     model_control_pub.publish(model_control_msg);
+
+    int zmenna;
+    cin >> zmenna;
 
     ros::spinOnce();
     rate.sleep();
