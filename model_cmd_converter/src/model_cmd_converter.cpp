@@ -1,6 +1,8 @@
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/Float64MultiArray.h>
+#include <cmath>
+#define MIN_SPEED 0.5
 
 // set ref_v
 void cmd_speedCallback(const std_msgs::Float64::ConstPtr& msg);
@@ -10,7 +12,7 @@ void speedCallback(const std_msgs::Float64::ConstPtr& msg);
 double pidController();
 
 // speed received from mpc
-double ref_v = 0;
+double ref_v = MIN_SPEED;
 // speed of the model
 double model_v = 0;
 // previous error for pid
@@ -30,19 +32,21 @@ int main(int argc, char** argv){
   ros::Subscriber model_v_sub = nh.subscribe<std_msgs::Float64>("speed", 1000, speedCallback);
   ros::Subscriber ref_v_sub = nh.subscribe<std_msgs::Float64>("cmd_speed", 1000, cmd_speedCallback);
   ros::Publisher model_control_pub = nh.advertise<std_msgs::Float64MultiArray>("model_control", 1000);
-  pnh.param("KP", KP, 0.0);
+  pnh.param("KP", KP, 1.0);
   pnh.param("KI", KI, 0.0);
   pnh.param("KD", KD, 0.0);
 
   std_msgs::Float64MultiArray model_control;
   model_control.data.resize(2);
+  ros::Rate rate(100);
 
   while(ros::ok()){
     ros::spinOnce();
     model_control.data[0] = 0; // delta
     model_control.data[1] = pidController(); // torque
-    ROS_INFO("torque: %lf, speed: %lf\n", model_control.data[1], model_v);
+    ROS_INFO("torque: %lf, speed: %lf\n", model_control.data[1], ref_v);
     model_control_pub.publish(model_control);
+    rate.sleep();
   }
 
   return 0;
@@ -52,6 +56,7 @@ int main(int argc, char** argv){
 void cmd_speedCallback(const std_msgs::Float64::ConstPtr& msg){
 
   ref_v = msg->data;
+  if(ref_v < MIN_SPEED) ref_v = MIN_SPEED;
   //ROS_INFO("ref_v from mpc: %lf\n", ref_v);
   return;
 }
@@ -59,6 +64,7 @@ void cmd_speedCallback(const std_msgs::Float64::ConstPtr& msg){
 void speedCallback(const std_msgs::Float64::ConstPtr& msg){
 
   model_v = msg->data;
+  if(isnan(model_v)) exit(1);
   //ROS_INFO("ref_v from mpc: %lf\n", ref_v);
   return;
 }
@@ -66,13 +72,13 @@ void speedCallback(const std_msgs::Float64::ConstPtr& msg){
 
 double pidController(){
 
-  double dt, derivative, error, torque;
-  dt = ros::Time::now().toSec() - prev_t;
+  double dt, derivative, error, acceleration, torque;
+  dt = 0.01;
   error = ref_v - model_v;
   integral = integral + error * dt;
   derivative = (error - previous_error) / dt;
-  torque = KP * error + KI * integral + KD * derivative;
+  acceleration = KP * error + KI * integral + KD * derivative;
+  torque = acceleration * 1300 * 0.3;
   previous_error = error;
-  prev_t = ros::Time::now().toSec();
   return torque;
 }
