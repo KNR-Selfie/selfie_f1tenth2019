@@ -154,7 +154,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
     vars_upperbound[i] = params.max_mod_delta;
   }
 
-  //Acceleration/decceleration upper and lower limits
+  //Velocity upper and lower limits
   for (size_t i = v_start; i < n_vars; ++i)
   {
     vars_lowerbound[i] = params.min_v;
