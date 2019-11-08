@@ -17,8 +17,10 @@ size_t epsi_start;
 // Variables for actuators
 // Steering angle
 size_t delta_start;
-// Acceleration
-//size_t a_start;
+// Axis Forces
+size_t front_force_start;
+size_t rear_force_start;
+
 
 
 MPC::MPC(Params p)
@@ -32,6 +34,7 @@ MPC::MPC(Params p)
   epsi_start = cte_start + N;
   delta_start = epsi_start + N;
   v_start = delta_start + N - 1;
+
 }
 
 
@@ -110,7 +113,9 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   //Set the number of model variables
   size_t n_vars = STATE_VARS * N + ACTUATORS_VARS * (N - 1);
   //Set the number of constraints
-  size_t n_constraints = STATE_VARS * N;
+  // axis force constraints
+  int additional_constraints = 2;
+  size_t n_constraints = STATE_VARS * N + additional_constraints;
 
   //Initial value of the independent variables
   //SHOULD BE 0 besides initial state
@@ -282,15 +287,33 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
 
         AD<double> delta0 = vars[delta_start + t - 1];
         AD<double> v0 = vars[v_start + t - 1];
+        AD<double> v1 = vars[v_start + t];
 
         AD<double> f1 = pathCoeffs[0] + pathCoeffs[1] * x1 + pathCoeffs[2] * x1*x1;
         AD<double> psides1 = CppAD::atan(pathCoeffs[1] + 2 * pathCoeffs[2] * x1);
 
+        // Model calculations
         double dt = params.delta_time;
         fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
         fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
         fg[1 + psi_start + t] = psi1 - (psi0 + v0 / LT * delta0 * dt);
         fg[1 + cte_start + t] = cte1 - (f1 - y1);
         fg[1 + epsi_start + t] = epsi1 - (psides1 - psi1);
+
+        // Axis force calculations
+        double I = params.moment_of_inertia;
+        double LR = LT - LF;
+        double a = (v1 - v0)/dt;
+        double beta = atan2(tan(delta0) * LR, LT);
+        double kappa = sin(beta)/LR;
+        double gamma = params.gamma;
+        double m = params.mass;
+
+        double denom = gamma*(LR*sin(delta) + LF*cos(delta) + LF*(1 - gamma);
+        // TODO przepisać wzorki
+        AD<double> Ffx = I*a*kappa*sin(delta)*(1 - gamma)
+        - a*LF*m*cos(beta)*(gamma*sin(delta) - cos(delta))
+        + kappa*LF*m*v1*v1*cos(delta)sin(beta)*(gamma/denom - 1)
+
     }
 }

@@ -19,7 +19,7 @@
 // length from rear axis to COG
 #define LF 0.19
 // total length
-#define LT 0.34
+#define LT 4
 
 using CppAD::AD;
 using Eigen::VectorXd;
