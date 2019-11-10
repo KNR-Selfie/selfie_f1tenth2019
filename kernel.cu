@@ -5,6 +5,7 @@
 #include "device_launch_parameters.h"
 #include <iostream>
 #include <stdio.h>
+#include <Windows.h>
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include <cstdlib>
@@ -25,6 +26,7 @@
 #include <thrust/replace.h>
 #include <thrust/functional.h>
 #include <iostream>
+#include <thrust/sort.h>
 #include <curand.h>
 #include <math.h>
 #include <curand.h>
@@ -35,6 +37,7 @@
 #include <assert.h>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
+#include <map>
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true)
@@ -47,15 +50,15 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
 }
 struct BoundaryConditions
 {
-	float x0 = 0;
-	float y0 = 0;
-	float psi0 = 0;
-	float cte0 = 0;
-	float e0 = 0;
-	float l = 0;
-	float a0 = 0;
-	float a1 = 0;
-	float a2 = 0;
+	float x0 = 1;
+	float y0 = 1;
+	float psi0 = 1;
+	float cte0 = 1;
+	float e0 = 1;
+	float l = 1;
+	float a0 = 1;
+	float a1 = 1;
+	float a2 = 1;
 	float dt = 0.1;
 };
 struct Weights
@@ -128,6 +131,11 @@ __global__ void fitness(float* commands, float* fitness, int nSteps, BoundaryCon
 	fitness[k] = cost;
 
 }
+
+__global__ void worstHalf(float* fitness, int* indexes)
+{
+
+}
 class Population
 {
 public:
@@ -158,7 +166,7 @@ public:
 		}
 		gpuErrchk(cudaMalloc((void**)& d_fitness, populationSize * sizeof(float)));
 		cudaMemcpy(d_commands, h_commands, 20 * populationSize * sizeof(float), cudaMemcpyHostToDevice);
-		
+
 		fitness << <10, 100 >> > (d_commands, d_fitness, 10, boundaryConditions, weights);
 
 		float* h_fitness = new float[populationSize];
@@ -166,9 +174,32 @@ public:
 		gpuErrchk(cudaMemcpy(h_fitness, d_fitness, populationSize * sizeof(float), cudaMemcpyDeviceToHost));
 		for (int i = 0; i < populationSize * 20; i++)
 		{
-			std::cout << h_fitness[i] << std::endl;
+			//std::cout << h_fitness[i] << std::endl;
 		}
-
+		worstIndexes(h_fitness);
+	}
+	int* worstIndexes(float* fitness)
+	{
+		const int N = 6;
+		int    keys[N] = { 1,   4,   2,   8,   5,   7 };
+		char values[N] = { 'a', 'b', 'c', 'd', 'e', 'f' };
+		thrust::sort_by_key(keys, keys + N, values);
+		// keys is now   {  1,   2,   4,   5,   7,   8}
+		// values is now {'a', 'c', 'b', 'e', 'f', 'd'}
+		int* vals = new int[populationSize];
+		int*  fit = new int[populationSize];
+		for (int i = 0; i < populationSize; i++)
+		{
+			vals[i] = i;
+			fit[i] = rand() % 20;
+		}
+		//for (int i = 0; i < populationSize; i++)
+		//	printf("%f %d \n", fitness[i], vals[i]);// = i;
+		//printf("--------------\n");
+		//thrust::sort_by_key(fitness, fitness + populationSize, vals);
+		//for (int i = 0; i < populationSize; i++)
+		//	printf("%f %d \n",fitness[i], vals[i]);// = i;
+		return NULL;
 	}
 	float* d_d;
 	float* h_h;
@@ -188,12 +219,15 @@ private:
 
 int main()
 {
+	GpuTimer timer;
+	timer.Start();
 	Population ne;
 	ne.initializePopulation();
+	timer.Stop();
+	printf("%f",timer.Elapsed());
 
 	gpuErrchk(cudaGetLastError());
 	gpuErrchk(cudaDeviceSynchronize());
 
 	return 0;
 }
-
