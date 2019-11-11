@@ -64,13 +64,13 @@ Nieprzetłumaczalna gra słów: bugs - błędy w kodzie; Bugs Bunny - królik od
 33. "Jak ktoś mówi: 'Chciałbym języka programowania, w którym trzeba tylko powiedzieć, co się chce osiągnąć' dajcie mu lizaka." - Alan J. Perlis
 
 32. "Evolution of languages: FORTRAN is a non-typed language. C is a weakly typed language. Ada is a strongly typed language. C++ is a strongly hyped language." - Ron Sercely
-*ciężko przetłumaczyć, to zostawię jak jest
+
 
 31. "Dobry projekt dodaje wartości szybciej niż generuje koszty." - Thomas C. Gale
 
 30. "Python jest zamiennikiem BASIC'a w tym samym stopniu co Optimus Prime jest zaminnikiem ciężarówki." - Cory Dodt
 
-29. "Gadka jest tanie. Pokaż mi kod." - Linus Torvalds
+29. "Gadka jest tania. Pokaż mi kod." - Linus Torvalds
 
 28. "Perfekcję [w programowaniu] osiąga się nie wtedy, kiedy nie można już nic dodać, ale wtedy, kiedy nie można już nic ująć" - Antoine de Saint-Exupry
 
