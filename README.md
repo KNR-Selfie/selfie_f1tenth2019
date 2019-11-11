@@ -5,14 +5,19 @@
 
 **06.11**
 Nie działa
+-
 **7.11**
 Nie działa
+-
 **08.11**
 Nie działa
+-
 **09.11**
 Nie działa
+-
 **10.11**
 Nie działa
+-
 **11.11**
 Nie działa
 -
