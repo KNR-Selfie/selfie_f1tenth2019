@@ -4,8 +4,13 @@
 #define TRUE 0 
 #define FALSE 1
 ```
+```cpp
+float zmienna=2;
+printf("%d",zmienna);
+///Kocham
+```
 ## Dziennik pokładowy
-
+-
 **06.11**
 Nie działa
 -
