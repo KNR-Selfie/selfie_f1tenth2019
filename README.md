@@ -1,5 +1,20 @@
 # Tu coś kiedyś będzie. Projekt jest ambitny i jak na razie nie działa. Ale spokojnie, nie będzie też działać przez najbliży miesiąc. Więc nie spóźnicie się na premierę. Pozdrawiam
 ` Zamierzam pracować ciężko, a może nawet ciężej. Projekt będzie ważył niewiele, jak nie mniej. `
+
+## Dziennik pokładowy
+
+**06.11**
+Nie działa
+**7.11**
+Nie działa
+**08.11**
+Nie działa
+**09.11**
+Nie działa
+**10.11**
+Nie działa
+**11.11**
+Nie działa
 -
 50. "Programowanie w dzisiejszych czasach jest wyścigiem pomiędzy inżynierami oprogramowania, usiłującymi stworzyć większe i bardziej idiotoodporne programy, oraz światem usiłującym stworzyć większych i lepszych idiotów. Jak dotąd świat wygrywa." - Rick Cook
 
