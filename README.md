@@ -7,7 +7,7 @@
 ```cpp
 float zmienna=2;
 printf("%d",zmienna);
-///Kocham
+//Kocham
 ```
 ## Dziennik pokładowy
 -
