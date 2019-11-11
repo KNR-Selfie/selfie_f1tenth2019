@@ -1,7 +1,9 @@
 # Tu coś kiedyś będzie. Projekt jest ambitny i jak na razie nie działa. Ale spokojnie, nie będzie też działać przez najbliży miesiąc. Więc nie spóźnicie się na premierę. Pozdrawiam
 ` Zamierzam pracować ciężko, a może nawet ciężej. Projekt będzie ważył niewiele, jak nie mniej. `
-```#define TRUE 0 
-#define FALSE 1```
+```cpp
+#define TRUE 0 
+#define FALSE 1
+```
 ## Dziennik pokładowy
 
 **06.11**
