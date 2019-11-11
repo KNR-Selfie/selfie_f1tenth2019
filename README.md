@@ -1,6 +1,7 @@
 # Tu coś kiedyś będzie. Projekt jest ambitny i jak na razie nie działa. Ale spokojnie, nie będzie też działać przez najbliży miesiąc. Więc nie spóźnicie się na premierę. Pozdrawiam
 ` Zamierzam pracować ciężko, a może nawet ciężej. Projekt będzie ważył niewiele, jak nie mniej. `
-` 50. "Programowanie w dzisiejszych czasach jest wyścigiem pomiędzy inżynierami oprogramowania, usiłującymi stworzyć większe i bardziej idiotoodporne programy, oraz światem usiłującym stworzyć większych i lepszych idiotów. Jak dotąd świat wygrywa." - Rick Cook
+-
+50. "Programowanie w dzisiejszych czasach jest wyścigiem pomiędzy inżynierami oprogramowania, usiłującymi stworzyć większe i bardziej idiotoodporne programy, oraz światem usiłującym stworzyć większych i lepszych idiotów. Jak dotąd świat wygrywa." - Rick Cook
 
 49. "Lisp to nie język -- to materiał budowlany." - Alan Kay
 
@@ -103,4 +104,4 @@ Nieprzetłumaczalna gra słów: bugs - błędy w kodzie; Bugs Bunny - królik od
 
 2. "Zawsze programuj jak gdyby osoba zajmująca się twoim kodem w przyszłości była agresywnym psychopatą, który wie gdzie mieszkasz." - Martin Golding
 
-1. "Są dwie drogi tworzenia oprogramowania. Jedną jest tworzenie tak prostego kodu, że, w sposób oczywisty, nie ma w nim żadnych braków. Drugą jest tworzenie tak skomplikowanego kodu, że nie ma w nim żadnych oczywistych braków." - C.A.R. `
+1. "Są dwie drogi tworzenia oprogramowania. Jedną jest tworzenie tak prostego kodu, że, w sposób oczywisty, nie ma w nim żadnych braków. Drugą jest tworzenie tak skomplikowanego kodu, że nie ma w nim żadnych oczywistych braków." - C.A.R. 
