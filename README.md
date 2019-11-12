@@ -31,10 +31,10 @@ Nie działa
 **11.11**
 Nie działa
 -
-**12.11**
+**12.11.1**
 Nie działa
 -
-**13.11**
+**12.11.2**
 Zadziałało bo "dlatego zawsze trzeba używać auto"~Adam
 -
 50. "Programowanie w dzisiejszych czasach jest wyścigiem pomiędzy inżynierami oprogramowania, usiłującymi stworzyć większe i bardziej idiotoodporne programy, oraz światem usiłującym stworzyć większych i lepszych idiotów. Jak dotąd świat wygrywa." - Rick Cook
