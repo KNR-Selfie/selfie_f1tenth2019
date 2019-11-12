@@ -6,7 +6,9 @@
 #include <iostream>
 #include <stdio.h>
 #include <Windows.h>
+#include <fstream>
 #include "cuda_runtime.h"
+#include <string>
 #include "device_launch_parameters.h"
 #include <cstdlib>
 #include <stdio.h>
@@ -20,6 +22,7 @@
 #include <thrust/device_vector.h>
 #include "gputimer.h"
 #include <thrust/transform.h>
+#include<thrust/execution_policy.h>
 #include <thrust/sequence.h>
 #include <thrust/copy.h>
 #include <thrust/fill.h>
@@ -35,9 +38,12 @@
 #include <curand_kernel.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include <map>
+#define DUMPLOG
+//#define DEBUG
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true)
@@ -72,8 +78,7 @@ struct Weights
 	float wC = 1;
 	float Vmax = 1;
 };
-__global__ void fitness(float* commands, float* fitness, int nSteps, BoundaryConditions boundaryConditions,
-	Weights weights)
+__global__ void fitness(float* commands, float* fitness, int nSteps, BoundaryConditions boundaryConditions, Weights weights)
 {
 	int k = threadIdx.x + blockDim.x * blockIdx.x;
 
@@ -129,13 +134,69 @@ __global__ void fitness(float* commands, float* fitness, int nSteps, BoundaryCon
 		lastSpeed = speed;
 	}
 	fitness[k] = cost;
+#ifdef DEBUGCOST
+	printf("Koszt wynosi: %f\n", fitness[k]);
+#endif // DEBUG
 
 }
-
-__global__ void worstHalf(float* fitness, int* indexes)
+__global__ void sortWithIndexes(float* fitness, int* indexes, int populationSize)//dziala
 {
+#ifdef DEBUGSORT
+	for (int i = 0; i < populationSize; i++)
+		printf("Indeks i fitness przed sortowaniem: %d %f\n", indexes[i], fitness[i]);
+#endif // DEBUGSORT
 
+	thrust::sort_by_key(thrust::device, fitness, fitness + populationSize, indexes);
+#ifdef DEBUGSORT
+	for (int i = 0; i < populationSize; i++)
+		printf("Indeks i fitness po sortowaniu: %d %f\n", indexes[i], fitness[i]);
+#endif // DEBUGSORT
 }
+__global__ void printCommands(float* commands)
+{
+	int k = threadIdx.x + blockDim.x * blockIdx.x;
+	for (int i = 0; i < 20; i++)
+	{
+		printf("%f ", commands[k * 20 + i]);
+	}
+}
+int* generateRandom(int min, int max, int size)
+{
+	srand(time(NULL));
+	int* random = new int[size];
+	for (int i = 0; i < size; i++)
+	{
+		random[i] = min + rand() % max;
+	}
+	return random;
+}
+__global__ void crossover(float* commands, int* indexes, int* random)
+{
+	int k = threadIdx.x + blockDim.x * blockIdx.x;
+	for (int i = 0; i < 10; i++)
+	{
+		int rand1 = random[k]; __syncthreads();
+		int rand2 = random[500 + k]; __syncthreads();
+		int parentOffset1 = 20 * indexes[rand1]; __syncthreads();//k jest z zakresu 0-50%pop(najlepsza czêœæ populacji)
+		int parentOffset2 = 20 * indexes[rand2]; __syncthreads();//k jest z zakresu 0-50%pop(najlepsza czêœæ populacji)
+		if (i < (k % 10))
+		{
+			int speed = commands[parentOffset1 + 2 * i + 1];
+			__syncthreads();
+			int angle = commands[parentOffset1 + 2 * i]; __syncthreads();
+			commands[500 + k * 20 + 2 * i + 1] = speed; __syncthreads();
+			commands[500 + k * 20 + 2 * i] = angle; __syncthreads();
+		}
+		else
+		{
+			int speed = commands[parentOffset2 + 2 * i + 1]; __syncthreads();
+			int angle = commands[parentOffset2 + 2 * i]; __syncthreads();
+			commands[500 + k * 20 + 2 * i + 1] = speed; __syncthreads();
+			commands[500 + k * 20 + 2 * i] = angle; __syncthreads();
+		}
+	};
+}
+
 class Population
 {
 public:
@@ -154,55 +215,91 @@ public:
 		this->numberOfGenerations = 100;
 		this->chanceOfMutation = 0.05;
 		this->chanceOfCrossover = 1;
+
 	}
 	void initializePopulation()
 	{
 		srand(time(NULL));
-		gpuErrchk(cudaMalloc((void**)& d_commands, 2 * 10 * populationSize * sizeof(float)));//commands
-		float* h_commands = new float[2 * 10 * populationSize];
-		for (int i = 0; i < 20 * populationSize; i++)
-		{
-			h_commands[i] = -0.44 + (float)(rand() % 88) / 100;
-		}
-		gpuErrchk(cudaMalloc((void**)& d_fitness, populationSize * sizeof(float)));
-		cudaMemcpy(d_commands, h_commands, 20 * populationSize * sizeof(float), cudaMemcpyHostToDevice);
 
-		fitness << <10, 100 >> > (d_commands, d_fitness, 10, boundaryConditions, weights);
-
-		float* h_fitness = new float[populationSize];
-		h_h = new float[populationSize];
-		gpuErrchk(cudaMemcpy(h_fitness, d_fitness, populationSize * sizeof(float), cudaMemcpyDeviceToHost));
-		for (int i = 0; i < populationSize * 20; i++)
-		{
-			//std::cout << h_fitness[i] << std::endl;
-		}
-		worstIndexes(h_fitness);
-	}
-	int* worstIndexes(float* fitness)
-	{
-		const int N = 6;
-		int    keys[N] = { 1,   4,   2,   8,   5,   7 };
-		char values[N] = { 'a', 'b', 'c', 'd', 'e', 'f' };
-		thrust::sort_by_key(keys, keys + N, values);
-		// keys is now   {  1,   2,   4,   5,   7,   8}
-		// values is now {'a', 'c', 'b', 'e', 'f', 'd'}
-		int* vals = new int[populationSize];
-		int*  fit = new int[populationSize];
+		int* vals_temp = new int[populationSize];
+		h_commands = new float[2 * 10 * populationSize];
 		for (int i = 0; i < populationSize; i++)
 		{
-			vals[i] = i;
-			fit[i] = rand() % 20;
+			vals_temp[i] = i;
 		}
-		//for (int i = 0; i < populationSize; i++)
-		//	printf("%f %d \n", fitness[i], vals[i]);// = i;
-		//printf("--------------\n");
-		//thrust::sort_by_key(fitness, fitness + populationSize, vals);
-		//for (int i = 0; i < populationSize; i++)
-		//	printf("%f %d \n",fitness[i], vals[i]);// = i;
-		return NULL;
+		for (int i = 0; i < 20 * populationSize; i++)
+		{
+			if (i % 2 == 0)
+				h_commands[i] = -0.44 + (float)(rand() % 88) / 100;
+			else
+				h_commands[i] = -2 + (float)(rand() % 400) / 100;
+		}
+
+		gpuErrchk(cudaMalloc((void**)& d_vals, populationSize * sizeof(int)));
+		gpuErrchk(cudaMalloc((void**)& d_commands, 2 * 10 * populationSize * sizeof(float)));//commands
+		gpuErrchk(cudaMalloc((void**)& d_fitness, populationSize * sizeof(float)));
+
+		gpuErrchk(cudaMemcpy(d_vals, vals_temp, populationSize * sizeof(int), cudaMemcpyHostToDevice));
+		gpuErrchk(cudaMemcpy(d_commands, h_commands, 20 * populationSize * sizeof(float), cudaMemcpyHostToDevice));
+
+#ifdef DEBUGCOMMANDS
+		for (int i = 0; i < 20 * populationSize - 1; i++)
+		{
+			printf("%f;%f\n", h_commands[i], h_commands[i + 1]);
+		}
+#endif // DEBUGCOMMANDS
+	}
+	void dumpLog(std::ofstream& plik)
+	{
+		for (int j = 0; j < 10; j++)
+			plik << "angle;";
+		plik << "NULL;";
+		for (int j = 0; j < 10; j++)
+			plik << "speed;";
+		plik << "\n";
+		for (int i = 0; i < populationSize; i++)
+		{
+			for (int j = 0; j < 10; j++)
+				plik << "=" << h_commands[i * 20 + j * 2] << ";";
+			plik << "NULL;";
+			for (int j = 0; j < 10; j++)
+				plik << "=" << h_commands[i * 20 + j * 2 + 1] << ";";
+			plik << "\n";
+		}
+	}
+	void geneticAlgorithm()
+	{
+		
+		int* randomNumbers = new int[1000];
+		randomNumbers = generateRandom(0, 500, 1000);
+		int* d_randomNumbers;
+		cudaMalloc((void**)& d_randomNumbers, 1000 * sizeof(int));
+		cudaMemcpy(d_randomNumbers, randomNumbers, 1000 * sizeof(int), cudaMemcpyHostToDevice);
+		fitness << <10, 100 >> > (d_commands, d_fitness, 10, boundaryConditions, weights);
+
+		//gpuErrchk(cudaGetLastError());
+
+		//gpuErrchk(cudaMemcpy(h_commands, d_commands, 10 * 2 * populationSize * sizeof(float), cudaMemcpyDeviceToHost));
+
+#ifdef DUMPLOG
+		//dumpLog();
+#endif // DUMPLOG
+		std::ofstream plik("data.csv");
+		//gpuErrchk(cudaGetLastError());
+		dumpLog(plik);
+		crossover << <10, 50 >> > (d_commands, d_vals, d_randomNumbers);
+		gpuErrchk(cudaMemcpy(h_commands, d_commands, 10 * 2 * populationSize * sizeof(float), cudaMemcpyDeviceToHost));
+		dumpLog(plik);
+		//gpuErrchk(cudaGetLastError());
+		
+		
+#ifdef DUMPLOG
+		//dumpLog();
+#endif // DUMPLOG
 	}
 	float* d_d;
 	float* h_h;
+	float* h_commands;
 	int populationSize = 1000;
 	int numberOfSteps = 10;
 	int numberOfGenerations = 100;
@@ -210,6 +307,7 @@ public:
 	float chanceOfCrossover = 1;
 	float* d_commands;
 	float* d_fitness;
+	int* d_vals;
 	BoundaryConditions boundaryConditions;
 	Weights weights;
 private:
@@ -220,12 +318,16 @@ private:
 int main()
 {
 	GpuTimer timer;
-	timer.Start();
 	Population ne;
+	timer.Start();
 	ne.initializePopulation();
 	timer.Stop();
-	printf("%f",timer.Elapsed());
-
+	printf("%f\n", timer.Elapsed());
+	timer.Start();
+	for (int i = 0; i < 1; i++)
+		ne.geneticAlgorithm();
+	timer.Stop();
+	printf("%f\n", timer.Elapsed());
 	gpuErrchk(cudaGetLastError());
 	gpuErrchk(cudaDeviceSynchronize());
 
