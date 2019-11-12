@@ -42,8 +42,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include <map>
-#define DUMPLOG
-//#define DEBUG
+
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true)
@@ -157,8 +156,39 @@ __global__ void printCommands(float* commands)
 	int k = threadIdx.x + blockDim.x * blockIdx.x;
 	for (int i = 0; i < 20; i++)
 	{
-		printf("%f ", commands[k * 20 + i]);
+		if ((k * 20 + i) % 2 == 0)
+			printf("skret %f\n", commands[k * 20 + i]);
+		else
+			printf("predkosc %f\n", commands[k * 20 + i]);
 	}
+}
+__global__ void crossover(float* commands, int* indexes, int* random)
+{
+	int k = threadIdx.x + blockDim.x * blockIdx.x;
+	for (int i = 0; i < 10; i++)
+	{
+		int rand1 = random[k]; __syncthreads();
+		int rand2 = random[500 + k]; __syncthreads(); //random[0,500]
+		int parentOffset1 = 20 * indexes[rand1]; __syncthreads();//k jest z zakresu 0-50%pop(najlepsza czêœæ populacji)
+		int parentOffset2 = 20 * indexes[rand2]; __syncthreads();//k jest z zakresu 0-50%pop(najlepsza czêœæ populacji)
+		if (i < (k % 10))
+		{
+			float speed = commands[parentOffset1 + 2 * i + 1];
+			__syncthreads();
+			float angle = commands[parentOffset1 + 2 * i]; __syncthreads();
+			//printf("%d \n", 500 + k * 20 + 2 * i + 1);
+			commands[(500 + k) * 20 + 2 * i + 1] = speed; __syncthreads();
+			commands[(500 + k) * 20 + 2 * i] = angle; __syncthreads();
+		}
+		else
+		{
+			float speed = commands[parentOffset2 + 2 * i + 1]; __syncthreads();
+			float angle = commands[parentOffset2 + 2 * i]; __syncthreads();
+			//printf("%d \n", 500 + k * 20 + 2 * i + 1);
+			commands[(500 + k) * 20 + 2 * i + 1] = speed; __syncthreads();
+			commands[(500 + k) * 20 + 2 * i] = angle; __syncthreads();
+		}
+	};
 }
 int* generateRandom(int min, int max, int size)
 {
@@ -170,32 +200,7 @@ int* generateRandom(int min, int max, int size)
 	}
 	return random;
 }
-__global__ void crossover(float* commands, int* indexes, int* random)
-{
-	int k = threadIdx.x + blockDim.x * blockIdx.x;
-	for (int i = 0; i < 10; i++)
-	{
-		int rand1 = random[k]; __syncthreads();
-		int rand2 = random[500 + k]; __syncthreads();
-		int parentOffset1 = 20 * indexes[rand1]; __syncthreads();//k jest z zakresu 0-50%pop(najlepsza czêœæ populacji)
-		int parentOffset2 = 20 * indexes[rand2]; __syncthreads();//k jest z zakresu 0-50%pop(najlepsza czêœæ populacji)
-		if (i < (k % 10))
-		{
-			int speed = commands[parentOffset1 + 2 * i + 1];
-			__syncthreads();
-			int angle = commands[parentOffset1 + 2 * i]; __syncthreads();
-			commands[500 + k * 20 + 2 * i + 1] = speed; __syncthreads();
-			commands[500 + k * 20 + 2 * i] = angle; __syncthreads();
-		}
-		else
-		{
-			int speed = commands[parentOffset2 + 2 * i + 1]; __syncthreads();
-			int angle = commands[parentOffset2 + 2 * i]; __syncthreads();
-			commands[500 + k * 20 + 2 * i + 1] = speed; __syncthreads();
-			commands[500 + k * 20 + 2 * i] = angle; __syncthreads();
-		}
-	};
-}
+
 
 class Population
 {
@@ -241,14 +246,13 @@ public:
 
 		gpuErrchk(cudaMemcpy(d_vals, vals_temp, populationSize * sizeof(int), cudaMemcpyHostToDevice));
 		gpuErrchk(cudaMemcpy(d_commands, h_commands, 20 * populationSize * sizeof(float), cudaMemcpyHostToDevice));
-
 #ifdef DEBUGCOMMANDS
 		for (int i = 0; i < 20 * populationSize - 1; i++)
 		{
 			printf("%f;%f\n", h_commands[i], h_commands[i + 1]);
-		}
-#endif // DEBUGCOMMANDS
 	}
+#endif // DEBUGCOMMANDS
+}
 	void dumpLog(std::ofstream& plik)
 	{
 		for (int j = 0; j < 10; j++)
@@ -259,6 +263,7 @@ public:
 		plik << "\n";
 		for (int i = 0; i < populationSize; i++)
 		{
+			plik << "=" << i << ";";
 			for (int j = 0; j < 10; j++)
 				plik << "=" << h_commands[i * 20 + j * 2] << ";";
 			plik << "NULL;";
@@ -269,7 +274,7 @@ public:
 	}
 	void geneticAlgorithm()
 	{
-		
+
 		int* randomNumbers = new int[1000];
 		randomNumbers = generateRandom(0, 500, 1000);
 		int* d_randomNumbers;
@@ -282,19 +287,24 @@ public:
 		//gpuErrchk(cudaMemcpy(h_commands, d_commands, 10 * 2 * populationSize * sizeof(float), cudaMemcpyDeviceToHost));
 
 #ifdef DUMPLOG
-		//dumpLog();
-#endif // DUMPLOG
-		std::ofstream plik("data.csv");
-		//gpuErrchk(cudaGetLastError());
+		std::ofstream plik("dzial.csv");
 		dumpLog(plik);
+#endif // DUMPLOG
+		
+		//gpuErrchk(cudaGetLastError());
+
+		gpuErrchk(cudaMemcpy(h_commands, d_commands, 10 * 2 * populationSize * sizeof(float), cudaMemcpyDeviceToHost));
+
+
 		crossover << <10, 50 >> > (d_commands, d_vals, d_randomNumbers);
 		gpuErrchk(cudaMemcpy(h_commands, d_commands, 10 * 2 * populationSize * sizeof(float), cudaMemcpyDeviceToHost));
 		dumpLog(plik);
+		//printCommands << <10, 100 >> > (d_commands);
 		//gpuErrchk(cudaGetLastError());
-		
-		
+
+
 #ifdef DUMPLOG
-		//dumpLog();
+		dumpLog(plik);
 #endif // DUMPLOG
 	}
 	float* d_d;
