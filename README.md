@@ -36,7 +36,6 @@ Nie działa
 -
 **13.11**
 Zadziałało bo "dlatego zawsze trzeba używać auto"~Adam
-![auto](https://imgflip.com/i/3g4mle)
 -
 50. "Programowanie w dzisiejszych czasach jest wyścigiem pomiędzy inżynierami oprogramowania, usiłującymi stworzyć większe i bardziej idiotoodporne programy, oraz światem usiłującym stworzyć większych i lepszych idiotów. Jak dotąd świat wygrywa." - Rick Cook
 
