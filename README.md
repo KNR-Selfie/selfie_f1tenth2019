@@ -141,3 +141,13 @@ Nieprzetłumaczalna gra słów: bugs - błędy w kodzie; Bugs Bunny - królik od
 2. "Zawsze programuj jak gdyby osoba zajmująca się twoim kodem w przyszłości była agresywnym psychopatą, który wie gdzie mieszkasz." - Martin Golding
 
 1. "Są dwie drogi tworzenia oprogramowania. Jedną jest tworzenie tak prostego kodu, że, w sposób oczywisty, nie ma w nim żadnych braków. Drugą jest tworzenie tak skomplikowanego kodu, że nie ma w nim żadnych oczywistych braków." - C.A.R. 
+
+```{r, echo=FALSE}
+# Define variable containing url
+url <- "http://www.online-image-editor.com//styles/2014/images/example_image.png"
+```
+## Some cat!
+<center><img src="`r url`"></center>
+
+## Alternatively...
+![](`r url`)
