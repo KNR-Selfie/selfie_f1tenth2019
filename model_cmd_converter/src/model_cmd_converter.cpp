@@ -76,7 +76,7 @@ double pidController(){
   double dt, derivative, error, acceleration, torque;
   dt = ros::Time::now().toSec() - prev_t;
   prev_t = ros::Time::now().toSec();
-  ROS_INFO("dt = %f", dt);
+  //ROS_INFO("dt = %f", dt);
   error = ref_v - model_v;
   integral = integral + error * dt;
   derivative = (error - previous_error) / dt;

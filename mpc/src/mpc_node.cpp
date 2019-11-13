@@ -17,7 +17,7 @@ using Eigen::VectorXd;
 double speed = 1;
 vector <geometry_msgs::PointStamped> path_points;
 
-void speedCallback(const std_msgs::Float32::ConstPtr& msg);
+void speedCallback(const std_msgs::Float64::ConstPtr& msg);
 void pathCallback(const nav_msgs::Path::ConstPtr& msg);
 VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order);
 //Convert v, delta and psi to Twist for use with f1 simulator
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
 }
 
 
-void speedCallback(const std_msgs::Float32::ConstPtr& msg)
+void speedCallback(const std_msgs::Float64::ConstPtr& msg)
 {
   speed = msg->data;
 }
