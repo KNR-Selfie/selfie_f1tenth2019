@@ -96,6 +96,8 @@ int main(int argc, char** argv)
     VectorXd pathCoeffs;
     pathCoeffs = polyfit(x, y, POLYFIT_ORDER);
 
+    std::cout << pathCoeffs[0]  << " " << pathCoeffs[1] << " " << pathCoeffs[2] << std::endl;
+
     VectorXd state(STATE_VARS);
     state(0) = 0; //x
     state(1) = 0; //y

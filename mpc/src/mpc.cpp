@@ -1,6 +1,5 @@
 #include "mpc.h"
 #include <cassert>
-
 //Parameters
 Params params;
 // Position on the map
@@ -17,8 +16,10 @@ size_t epsi_start;
 // Variables for actuators
 // Steering angle
 size_t delta_start;
-// Acceleration
-//size_t a_start;
+// Axis Forces, treated as constraint functions
+size_t front_force_start;
+size_t rear_force_start;
+
 
 
 MPC::MPC(Params p)
@@ -30,8 +31,12 @@ MPC::MPC(Params p)
   psi_start = y_start + N;
   cte_start = psi_start + N;
   epsi_start = cte_start + N;
-  delta_start = epsi_start + N;
+
+  delta_start = epsi_start + N - 1;
   v_start = delta_start + N - 1;
+
+  front_force_start = epsi_start + N - 1;
+  rear_force_start = front_force_start + N - 1;
 }
 
 
@@ -110,7 +115,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   //Set the number of model variables
   size_t n_vars = STATE_VARS * N + ACTUATORS_VARS * (N - 1);
   //Set the number of constraints
-  size_t n_constraints = STATE_VARS * N;
+  size_t n_constraints = STATE_VARS * N + FORCE_VARS * (N - 1);
 
   //Initial value of the independent variables
   //SHOULD BE 0 besides initial state
@@ -154,7 +159,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
     vars_upperbound[i] = params.max_mod_delta;
   }
 
-  //Acceleration/decceleration upper and lower limits
+  //Velocity upper and lower limits
   for (size_t i = v_start; i < n_vars; ++i)
   {
     vars_lowerbound[i] = params.min_v;
@@ -169,15 +174,29 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   // state and bounds on actuators
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
-  for (size_t i = 0; i < n_constraints; ++i)
+  for (size_t i = 0; i < epsi_start; ++i)
   {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
   }
 
+  const double g = 9.8123;
+  double LR = LT - LF;
+
+  for(size_t i = front_force_start; i < rear_force_start; ++i)
+  {
+      constraints_lowerbound[i] = 0;
+      constraints_upperbound[i] = pow(params.friction_coefficient*params.mass*g*LR/(LF + LR), 2);
+  }
+
+  for(size_t i = rear_force_start; i < n_constraints; ++i)
+  {
+      constraints_lowerbound[i] = 0;
+      constraints_upperbound[i] = pow(params.friction_coefficient*params.mass*g*LF/(LF + LR), 2);
+  }
+
   // Object that computes the cost function f and the constraints g_i
   FG_eval fg_eval(pathCoeffs);
-
   //options for IPOPT optimizer
   std::string options;
   // Uncomment this if you'd like more print information
@@ -282,15 +301,51 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
 
         AD<double> delta0 = vars[delta_start + t - 1];
         AD<double> v0 = vars[v_start + t - 1];
+        AD<double> v1 = vars[v_start + t];
+        AD<double> delta1 = vars[delta_start + t];
 
         AD<double> f1 = pathCoeffs[0] + pathCoeffs[1] * x1 + pathCoeffs[2] * x1*x1;
         AD<double> psides1 = CppAD::atan(pathCoeffs[1] + 2 * pathCoeffs[2] * x1);
 
+        // Model calculations
         double dt = params.delta_time;
         fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
         fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
         fg[1 + psi_start + t] = psi1 - (psi0 + v0 / LT * delta0 * dt);
         fg[1 + cte_start + t] = cte1 - (f1 - y1);
         fg[1 + epsi_start + t] = epsi1 - (psides1 - psi1);
+
+        // Axis force calculations
+        AD<double> I = params.moment_of_inertia;
+        AD<double> lr = LT - LF;
+        AD<double> lf = LF;
+        AD<double> a = (v1 - v0)/dt;
+        AD<double> beta = CppAD::atan2(CppAD::tan(delta0) * lr, lf + lr);
+        AD<double> kappa = CppAD::sin(beta)/lr;
+        AD<double> gamma = params.gamma;
+        AD<double> m = params.mass;
+
+        AD<double> denom = gamma*(lr*CppAD::sin(delta1) + lf*CppAD::cos(delta1)) + lf*(1 - gamma);
+        // TODO przepisać wzorki
+        AD<double> Ffx = I*a*kappa*CppAD::sin(delta1)*(1 - gamma)
+        - a*lf*m*CppAD::cos(beta)*(gamma*CppAD::sin(delta1) - CppAD::cos(delta1))
+        + kappa*lf*m*v1*v1*CppAD::cos(delta1)*CppAD::sin(beta)*(gamma/denom - 1);
+
+        AD<double> Ffy = I*a*kappa*(CppAD::cos(delta1) + gamma*(1 - CppAD::cos(delta1))) +
+        a*lf*m*CppAD::cos(beta)*CppAD::sin(delta1)*(gamma - 1) + a*gamma*lr*m*CppAD::cos(beta)
+        -gamma*kappa*m*v1*v1*CppAD::sin(beta)*(lr + lf*CppAD::sin(delta1)/denom);
+
+        AD<double> Fry = -((1 - gamma*(1 - CppAD::cos(delta1)))*(I*a*kappa - a*lf*m*CppAD::sin(beta)
+        -kappa*lf*m*v1*v1*CppAD::cos(beta)) + gamma*kappa*lr*m*v1*v1*CppAD::sin(delta1 - beta)
+        + a*gamma*lr*m*CppAD::cos(delta1 - beta))/denom;
+
+        AD<double> Frx = -gamma*kappa*lf*m*CppAD::cos(delta1)*CppAD::sin(beta)*v1*v1
+        + I*a*gamma*kappa*CppAD::sin(delta1) + a*gamma*lf*m*CppAD::cos(beta)*CppAD::cos(delta1)/denom;
+
+        fg[front_force_start + t - 1] = Ffx*Ffx + Ffy*Ffy;
+        fg[rear_force_start + t - 1] = Frx*Frx + Fry*Fry;
+
     }
+
+
 }

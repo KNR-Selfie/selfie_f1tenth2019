@@ -15,11 +15,12 @@
 #include <nav_msgs/Path.h>
 #include <std_msgs/Float32.h>
 #define STATE_VARS 5
+#define FORCE_VARS 2
 #define ACTUATORS_VARS 2
 // length from rear axis to COG
 #define LF 0.19
 // total length
-#define LT 0.34
+#define LT 4
 
 using CppAD::AD;
 using Eigen::VectorXd;
@@ -32,17 +33,25 @@ struct Params
   int epsi_weight;
   int v_weight;
   int delta_weight;
+  // weight for acceleration
   int a_weight;
+  // weights for difference in sequential actuations in delta and velocity
   int diff_delta_weight;
   int diff_v_weight;
+  // timestep for the internal vehicle model simulation
   double delta_time;
+  // absolute value of delta in radians
   double max_mod_delta;
-  //double max_acceleration;
-  //double max_decceleration;
+  double mass;
+  double moment_of_inertia;
+  double friction_coefficient;
+  // portion of moment carried on the front axis (e.g. if car is rwd, gamma = 0)
+  double gamma;
   double ref_v;
   double max_v;
   double min_v;
   double cornering_safety_weight;
+
 };
 
 // Struct that is returned by MPC
