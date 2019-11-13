@@ -65,7 +65,6 @@ int main(int argc, char** argv)
 
   MPC mpc(p);
   ros::Rate rate(loop_rate);
-  double x, y, orientation;
   Controls controls;
 
   while(ros::ok())
