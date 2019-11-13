@@ -109,7 +109,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   double epsi = state[4];
 
   /*
-   * Initiate indexing variables //TODO ogarnac zeby to bylo dzielone z fg_eval
+   * Initiate indexing variables
    */
   size_t N = params.prediction_horizon;
   //Set the number of model variables
@@ -194,6 +194,9 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
       constraints_lowerbound[i] = 0;
       constraints_upperbound[i] = pow(params.friction_coefficient*params.mass*g*LF/(LF + LR), 2);
   }
+
+  std::cout << params.friction_coefficient*params.mass*g*LR/(LF + LR) << std::endl;
+  std::cout << params.friction_coefficient*params.mass*g*LF/(LF + LR) << std::endl;
 
   // Object that computes the cost function f and the constraints g_i
   FG_eval fg_eval(pathCoeffs);
@@ -304,7 +307,7 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> v1 = vars[v_start + t];
         AD<double> delta1 = vars[delta_start + t];
 
-        AD<double> f1 = pathCoeffs[0] + pathCoeffs[1] * x1 + pathCoeffs[2] * x1*x1;
+        AD<double> f1 = pathCoeffs[0] + pathCoeffs[1] * x1 + pathCoeffs[2] * x1 * x1;
         AD<double> psides1 = CppAD::atan(pathCoeffs[1] + 2 * pathCoeffs[2] * x1);
 
         // Model calculations

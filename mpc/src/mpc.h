@@ -18,7 +18,7 @@
 #define FORCE_VARS 2
 #define ACTUATORS_VARS 2
 // length from rear axis to COG
-#define LF 0.19
+#define LF 2
 // total length
 #define LT 4
 

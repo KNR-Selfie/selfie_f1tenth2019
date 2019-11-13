@@ -59,7 +59,11 @@ int main(int argc, char** argv)
   pnh.param("ref_v", p.ref_v, 4.0);
   pnh.param("max_v", p.max_v, 0.5);
   pnh.param("min_v", p.min_v, -0.1);
-  pnh.param("cornering_safety_weight", p.cornering_safety_weight, 1.0);
+  pnh.param("cornering_safety_weight", p.cornering_safety_weight, 0.0);
+  pnh.param("friction_coefficient", p.friction_coefficient, 0.9);
+  pnh.param("moment_of_inertia", p.moment_of_inertia, 2380.0);
+  pnh.param("gamma", p.gamma, 0.5);
+  pnh.param("mass", p.mass, 1292.0);
 
 
   MPC mpc(p);
