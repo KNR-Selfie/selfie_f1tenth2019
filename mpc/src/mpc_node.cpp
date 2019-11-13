@@ -78,7 +78,7 @@ int main(int argc, char** argv)
       continue;
     }
     //get current state info
-    listener.lookupTransform("/map", "/base_link", ros::Time(0), transform);
+    listener.lookupTransform("/skidpad", "/base_link", ros::Time(0), transform);
     vector<geometry_msgs::PointStamped> path_points_base_link;
     for(unsigned int i = 0; i < path_points.size(); ++i)
     {
@@ -154,7 +154,7 @@ void pathCallback(const nav_msgs::Path::ConstPtr& msg)
   {
     geometry_msgs::PointStamped pointS;
     pointS.point = msg->poses[i].pose.position;
-    pointS.header.frame_id = "/map";
+    pointS.header.frame_id = "/skidpad";
     path_points.push_back(pointS);
   }
 }
