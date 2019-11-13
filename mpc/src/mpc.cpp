@@ -231,6 +231,39 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   ret_val.push_back(solution.x[delta_start]);
   ret_val.push_back(solution.x[v_start]);
 
+  double v0 = solution.x[v_start];
+  double v1 = solution.x[v_start + 1];
+  double dt = params.delta_time;
+  double delta1 = solution.x[delta_start];
+  double I = params.moment_of_inertia;
+  double lr = LT - LF;
+  double lf = LF;
+  double a = (v1 - v0)/dt;
+  double beta =  atan2(tan(delta1) * lr, lf + lr);
+  double kappa = sin(beta)/lr;
+  double gamma = params.gamma;
+  double m = params.mass;
+
+  double denom = gamma*(lr*sin(delta1) + lf*cos(delta1)) + lf*(1 - gamma);
+  // TODO przepisać wzorki
+  double Ffx = I*a*kappa*sin(delta1)*(1 - gamma)
+  - a*lf*m*cos(beta)*(gamma*sin(delta1) - cos(delta1))
+  + kappa*lf*m*v1*v1*cos(delta1)*sin(beta)*(gamma/denom - 1);
+
+  double Ffy = I*a*kappa*(cos(delta1) + gamma*(1 - cos(delta1))) +
+  a*lf*m*cos(beta)*sin(delta1)*(gamma - 1) + a*gamma*lr*m*cos(beta)
+  -gamma*kappa*m*v1*v1*sin(beta)*(lr + lf*sin(delta1)/denom);
+
+  double Fry = -((1 - gamma*(1 - cos(delta1)))*(I*a*kappa - a*lf*m*sin(beta)
+  -kappa*lf*m*v1*v1*cos(beta)) + gamma*kappa*lr*m*v1*v1*sin(delta1 - beta)
+  + a*gamma*lr*m*cos(delta1 - beta))/denom;
+
+  double Frx = -gamma*kappa*lf*m*cos(delta1)*sin(beta)*v1*v1
+  + I*a*gamma*kappa* sin(delta1) + a*gamma*lf*m*cos(beta)*cos(delta1)/denom;
+
+  std::cout << "Ff = " << sqrt(Ffx*Ffx + Ffy*Ffy) << "Fr = " << sqrt(Frx*Frx + Fry*Fry) << std::endl;
+
+
   for(size_t i = 0; i < N - 1; ++i) std::cout << "delta: " << solution.x[delta_start + i] << " v: " << solution.x[v_start + i] << std::endl;
 
   // Also return the optimal positions to display predicted path in rviz
