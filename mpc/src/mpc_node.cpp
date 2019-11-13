@@ -3,6 +3,7 @@
 #include <cmath>
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/Float64MultiArray.h"
 #include "nav_msgs/Path.h"
 #include "geometry_msgs/PointStamped.h"
 #include "Eigen-3.3.7/Eigen/QR"
@@ -29,8 +30,8 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
   ros::NodeHandle pnh("~");
   ros::Publisher f1sim_cmd = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
-  ros::Publisher target_speed = nh.advertise<std_msgs::Float64>("target_speed", 1000);
-  ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
+  ros::Publisher target_control_pub = nh.advertise<std_msgs::Float64MultiArray>("target_control", 1000);
+
   ros::Publisher optimal_path = nh.advertise<nav_msgs::Path>("optimal_path", 1000);
   ros::Publisher polynomial_path = nh.advertise<nav_msgs::Path>("polynomial_path", 1000);
   ros::Subscriber speed_sub = nh.subscribe("speed", 1000, speedCallback);
@@ -112,20 +113,25 @@ int main(int argc, char** argv)
 
     std_msgs::Float64 target_speed_msg;
     std_msgs::Float64 steering_angle_msg;
+    std_msgs::Float64MultiArray target_control;
+
     nav_msgs::Path optimal_path_msg;
     nav_msgs::Path polynomial_path_msg;
 
-    target_speed_msg.data = controls.velocity;
+
+    target_control.data.resize(2);
+    target_control.data[0] = controls.delta;
+    target_control.data[1] = controls.velocity;
     //target_speed_msg.data = min(max_vel, max(-1*max_vel, target_speed_msg.data));
-    steering_angle_msg.data = controls.delta;
     optimal_path_msg = controls.predicted_path;
     polynomial_path_msg = controls.polynomial_path;
 
     geometry_msgs::Twist velocity_msg = getTwist(target_speed_msg.data, steering_angle_msg.data, yaw);
 
     f1sim_cmd.publish(velocity_msg);
-    target_speed.publish(target_speed_msg);
-    steering_angle.publish(steering_angle_msg);
+
+    target_control_pub.publish(target_control);
+
     optimal_path.publish(optimal_path_msg);
     polynomial_path.publish(polynomial_path_msg);
 

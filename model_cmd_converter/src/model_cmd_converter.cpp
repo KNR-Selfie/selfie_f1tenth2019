@@ -4,12 +4,11 @@
 #include <cmath>
 #define MIN_SPEED 0.5
 
-// set ref_v
-void cmd_speedCallback(const std_msgs::Float64::ConstPtr& msg);
+// set target control and compute torque with PID
+void target_controlCallback(const std_msgs::Float64MultiArray::ConstPtr& msg);
 // set model_v
 void speedCallback(const std_msgs::Float64::ConstPtr& msg);
-// set steering_angle
-void steering_angle_Callback(const std_msgs::Float64::ConstPtr& msg);
+
 // returns torque value
 double pidController();
 
@@ -28,41 +27,39 @@ double prev_t;
 // pid params
 double KP, KI, KD;
 
+ros::Publisher model_control_pub;
+
 int main(int argc, char** argv){
 
   ros::init(argc, argv, "model_cmd_converter");
   ros::NodeHandle nh;
   ros::NodeHandle pnh("~");
   ros::Subscriber model_v_sub = nh.subscribe<std_msgs::Float64>("model_speed", 1000, speedCallback);
-  ros::Subscriber ref_v_sub = nh.subscribe<std_msgs::Float64>("target_speed", 1000, cmd_speedCallback);
-  ros::Subscriber steering_angle_sub = nh.subscribe<std_msgs::Float64>("steering_angle", 1000, steering_angle_Callback);
-  ros::Publisher model_control_pub = nh.advertise<std_msgs::Float64MultiArray>("model_control", 1000);
+  ros::Subscriber target_control_sub = nh.subscribe<std_msgs::Float64MultiArray>("target_control", 1000, target_controlCallback);
+  model_control_pub = nh.advertise<std_msgs::Float64MultiArray>("model_control", 1000);
   pnh.param("KP", KP, 1.0);
   pnh.param("KI", KI, 0.0);
   pnh.param("KD", KD, 0.0);
 
-  std_msgs::Float64MultiArray model_control;
-  model_control.data.resize(2);
-  ros::Rate rate(100);
-
-  while(ros::ok()){
-    ros::spinOnce();
-    model_control.data[0] = steering_angle; // delta
-    model_control.data[1] = pidController(); // torque
-    //ROS_INFO("torque: %lf, speed: %lf\n", model_control.data[1], ref_v);
-    model_control_pub.publish(model_control);
-    rate.sleep();
-  }
+  prev_t = ros::Time::now().toSec();
+  ros::spin();
 
   return 0;
 }
 
 
-void cmd_speedCallback(const std_msgs::Float64::ConstPtr& msg){
+void target_controlCallback(const std_msgs::Float64MultiArray::ConstPtr& msg){
 
-  ref_v = msg->data;
-  if(ref_v < MIN_SPEED) ref_v = MIN_SPEED;
+  std_msgs::Float64MultiArray model_control;
+  model_control.data.resize(2);
+  model_control.data[0] = msg->data[0]; // delta
+  ref_v = msg->data[1];
+  if(ref_v < MIN_SPEED) ref_v = MIN_SPEED; 
+  model_control.data[1] = pidController(); // torque
+  //ROS_INFO("torque: %lf, speed: %lf\n", model_control.data[1], ref_v);
   //ROS_INFO("ref_v from mpc: %lf\n", ref_v);
+  model_control_pub.publish(model_control);
+
   return;
 }
 
@@ -74,17 +71,12 @@ void speedCallback(const std_msgs::Float64::ConstPtr& msg){
   return;
 }
 
-void steering_angle_Callback(const std_msgs::Float64::ConstPtr& msg){
- 
-  steering_angle = msg->data;
-  return;
-}
-
-
 double pidController(){
 
   double dt, derivative, error, acceleration, torque;
-  dt = 0.01;
+  dt = ros::Time::now().toSec() - prev_t;
+  prev_t = ros::Time::now().toSec();
+  ROS_INFO("dt = %f", dt);
   error = ref_v - model_v;
   integral = integral + error * dt;
   derivative = (error - previous_error) / dt;
