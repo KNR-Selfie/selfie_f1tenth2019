@@ -15,6 +15,7 @@
 #include <nav_msgs/Path.h>
 #include <std_msgs/Float32.h>
 #define STATE_VARS 5
+#define FORCE_VARS 2
 #define ACTUATORS_VARS 2
 // length from rear axis to COG
 #define LF 0.19
