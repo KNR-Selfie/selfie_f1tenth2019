@@ -1,13 +1,10 @@
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
 #include <iostream>
 #include <stdio.h>
 #include <Windows.h>
 #include <fstream>
-#include "cuda_runtime.h"
 #include <string>
 #include "device_launch_parameters.h"
 #include <cstdlib>
@@ -22,7 +19,7 @@
 #include <thrust/device_vector.h>
 #include "gputimer.h"
 #include <thrust/transform.h>
-#include<thrust/execution_policy.h>
+#include <thrust/execution_policy.h>
 #include <thrust/sequence.h>
 #include <thrust/copy.h>
 #include <thrust/fill.h>
@@ -41,7 +38,6 @@
 #include <string>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
-#include <map>
 
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -250,9 +246,9 @@ public:
 		for (int i = 0; i < 20 * populationSize - 1; i++)
 		{
 			printf("%f;%f\n", h_commands[i], h_commands[i + 1]);
-	}
+		}
 #endif // DEBUGCOMMANDS
-}
+	}
 	void dumpLog(std::ofstream& plik)
 	{
 		for (int j = 0; j < 10; j++)
@@ -281,31 +277,20 @@ public:
 		cudaMalloc((void**)& d_randomNumbers, 1000 * sizeof(int));
 		cudaMemcpy(d_randomNumbers, randomNumbers, 1000 * sizeof(int), cudaMemcpyHostToDevice);
 		fitness << <10, 100 >> > (d_commands, d_fitness, 10, boundaryConditions, weights);
+		sortWithIndexes << <1, 1 >> > (d_commands, d_vals, populationSize);
 
-		//gpuErrchk(cudaGetLastError());
-
-		//gpuErrchk(cudaMemcpy(h_commands, d_commands, 10 * 2 * populationSize * sizeof(float), cudaMemcpyDeviceToHost));
 
 #ifdef DUMPLOG
+		gpuErrchk(cudaMemcpy(h_commands, d_commands, 10 * 2 * populationSize * sizeof(float), cudaMemcpyDeviceToHost));
 		std::ofstream plik("dzial.csv");
 		dumpLog(plik);
 #endif // DUMPLOG
-		
-		//gpuErrchk(cudaGetLastError());
-
-		gpuErrchk(cudaMemcpy(h_commands, d_commands, 10 * 2 * populationSize * sizeof(float), cudaMemcpyDeviceToHost));
-
-
 		crossover << <10, 50 >> > (d_commands, d_vals, d_randomNumbers);
-		gpuErrchk(cudaMemcpy(h_commands, d_commands, 10 * 2 * populationSize * sizeof(float), cudaMemcpyDeviceToHost));
-		dumpLog(plik);
-		//printCommands << <10, 100 >> > (d_commands);
-		//gpuErrchk(cudaGetLastError());
-
-
 #ifdef DUMPLOG
+		gpuErrchk(cudaMemcpy(h_commands, d_commands, 10 * 2 * populationSize * sizeof(float), cudaMemcpyDeviceToHost));
 		dumpLog(plik);
 #endif // DUMPLOG
+
 	}
 	float* d_d;
 	float* h_h;
