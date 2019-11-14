@@ -13,7 +13,8 @@
 #include <cmath>
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
-#include <std_msgs/Float32.h>
+#include "std_msgs/Float64.h"
+#include "std_msgs/Float64MultiArray.h"
 #define STATE_VARS 5
 #define FORCE_VARS 2
 #define ACTUATORS_VARS 2
@@ -61,6 +62,7 @@ struct Controls
   double delta;
   nav_msgs::Path predicted_path;
   nav_msgs::Path polynomial_path;
+  std_msgs::Float64MultiArray forces;
 };
 
 //Interface for interactions with ros

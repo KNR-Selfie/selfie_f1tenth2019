@@ -85,6 +85,12 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
   ret.predicted_path.header.frame_id = "base_link";
   ret.predicted_path.header.stamp = ros::Time::now();
 
+  const int force_count = 6;
+  std::vector<double> forces;
+  // N-1 for the sake of it being easier to understand
+  forces.insert(forces.begin(), solution.begin() + 2*(N-1) + 3, solution.begin() + 2*(N-1) + 3 + force_count);
+  std::swap(ret.forces.data, forces);
+
   return ret;
 
 }
@@ -92,8 +98,6 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
 
 std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
 {
-  std::cout << "Im loop" << std::endl;
-  bool ok = true;
   typedef CPPAD_TESTVECTOR(double) Dvector;
   /*
     Initiate variables describing a state of the car
@@ -231,6 +235,15 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   ret_val.push_back(solution.x[delta_start]);
   ret_val.push_back(solution.x[v_start]);
 
+  for(size_t i = 0; i < N - 1; ++i) std::cout << "delta: " << solution.x[delta_start + i] << " v: " << solution.x[v_start + i] << std::endl;
+
+  // Also return the optimal positions to display predicted path in rviz
+  for (size_t i = 0; i < N; ++i)
+  {
+    ret_val.push_back(solution.x[x_start + i]);
+    ret_val.push_back(solution.x[y_start + i]);
+  }
+
   double v0 = solution.x[v_start];
   double v1 = solution.x[v_start + 1];
   double dt = params.delta_time;
@@ -261,18 +274,14 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   double Frx = -gamma*kappa*lf*m*cos(delta1)*sin(beta)*v1*v1
   + I*a*gamma*kappa* sin(delta1) + a*gamma*lf*m*cos(beta)*cos(delta1)/denom;
 
-  std::cout << "Ff = " << sqrt(Ffx*Ffx + Ffy*Ffy) << "Fr = " << sqrt(Frx*Frx + Fry*Fry) << std::endl;
+  double Ff = sqrt(Ffx*Ffx + Ffy*Ffy);
+  double Fr = sqrt(Frx*Frx + Fry*Fry);
 
+  //Return forces so they can be
+  const int force_count = 6;
+  double forces[force_count] = {Ffx, Ffy, Frx, Fry, Ff, Fr};
+  ret_val.insert(ret_val.end(), forces, forces + force_count);
 
-  for(size_t i = 0; i < N - 1; ++i) std::cout << "delta: " << solution.x[delta_start + i] << " v: " << solution.x[v_start + i] << std::endl;
-
-  // Also return the optimal positions to display predicted path in rviz
-  for (size_t i = 0; i < N; ++i)
-  {
-    ret_val.push_back(solution.x[x_start + i]);
-    ret_val.push_back(solution.x[y_start + i]);
-  }
-  std::cout << "Loop end" << std::endl;
   return ret_val;
 }
 
