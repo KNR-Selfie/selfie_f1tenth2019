@@ -126,7 +126,7 @@ int main(int argc, char** argv)
 
 
     target_speed_msg.data = controls.velocity;
-    steering_angle_msg.data = controls.delta;
+    steering_angle_msg.data = controls.delta * (-1);
     forces = controls.forces;
     optimal_path_msg = controls.predicted_path;
     polynomial_path_msg = controls.polynomial_path;
