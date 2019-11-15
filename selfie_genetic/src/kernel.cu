@@ -40,6 +40,8 @@
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/Float32.h>
+#include "nav_msgs/Path.h"
+#include "geometry_msgs/PointStamped.h"
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true)
@@ -312,6 +314,25 @@ private:
 
 std_msgs::Float64 steering_angle_msg;
 std_msgs::Float64 target_speed_msg;
+double speed;
+std::vector <geometry_msgs::PointStamped> path_points;
+
+void speedCallback(const std_msgs::Float32::ConstPtr& msg)
+{
+  speed = msg->data;
+}
+
+void pathCallback(const nav_msgs::Path::ConstPtr& msg)
+{
+  path_points.clear();
+  for(unsigned int i = 0; i < msg->poses.size(); ++i)
+  {
+    geometry_msgs::PointStamped pointS;
+    pointS.point = msg->poses[i].pose.position;
+    pointS.header.frame_id = "/map";
+    path_points.push_back(pointS);
+  }
+}
 
 int main(int argc, char** argv)
 {
@@ -319,6 +340,8 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 	ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
 	ros::Publisher target_speed = nh.advertise<std_msgs::Float64>("target_speed", 1000);
+	ros::Subscriber speed_sub = nh.subscribe("speed", 1000, speedCallback);
+	ros::Subscriber closest_path_points = nh.subscribe("closest_path_points", 1000, pathCallback);
 	//
 	GpuTimer timer;
 	Population ne;
