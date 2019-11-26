@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 2.8.3)
 project(model_cmd_converter)
 
 find_package(catkin REQUIRED
-  std_msgs
   roscpp
+  std_msgs
+  selfie_msgs
 )
 
 catkin_package(
@@ -12,7 +13,7 @@ catkin_package(
 
 include_directories(
 # include
-  ${catkin_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS} include
 )
 
 add_executable(model_cmd_converter src/model_cmd_converter.cpp)

@@ -1,11 +1,12 @@
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
-#include <std_msgs/Float64MultiArray.h>
+#include "selfie_msgs/MPCControl.h"
+#include "selfie_msgs/ModelControl.h"
 #include <cmath>
 #define MIN_SPEED 0.5
 
 // set target control and compute torque with PID
-void target_controlCallback(const std_msgs::Float64MultiArray::ConstPtr& msg);
+void target_controlCallback(const selfie_msgs::MPCControl::ConstPtr& msg);
 // set model_v
 void speedCallback(const std_msgs::Float64::ConstPtr& msg);
 
@@ -35,8 +36,8 @@ int main(int argc, char** argv){
   ros::NodeHandle nh;
   ros::NodeHandle pnh("~");
   ros::Subscriber model_v_sub = nh.subscribe<std_msgs::Float64>("model_speed", 1000, speedCallback);
-  ros::Subscriber target_control_sub = nh.subscribe<std_msgs::Float64MultiArray>("target_control", 1000, target_controlCallback);
-  model_control_pub = nh.advertise<std_msgs::Float64MultiArray>("model_control", 1000);
+  ros::Subscriber target_control_sub = nh.subscribe<selfie_msgs::MPCControl>("target_control", 1000, target_controlCallback);
+  model_control_pub = nh.advertise<selfie_msgs::ModelControl>("model_control", 1000);
   pnh.param("KP", KP, 1.0);
   pnh.param("KI", KI, 0.0);
   pnh.param("KD", KD, 0.0);
@@ -48,14 +49,13 @@ int main(int argc, char** argv){
 }
 
 
-void target_controlCallback(const std_msgs::Float64MultiArray::ConstPtr& msg){
+void target_controlCallback(const selfie_msgs::MPCControl::ConstPtr& msg){
 
-  std_msgs::Float64MultiArray model_control;
-  model_control.data.resize(2);
-  model_control.data[0] = msg->data[0]; // delta
-  ref_v = msg->data[1];
+  selfie_msgs::ModelControl model_control;
+  model_control.steering_angle = msg->steering_angle; // delta
+  ref_v = msg->speed;
   if(ref_v < MIN_SPEED) ref_v = MIN_SPEED; 
-  model_control.data[1] = pidController(); // torque
+  model_control.torque = pidController(); // torque
   //ROS_INFO("torque: %lf, speed: %lf\n", model_control.data[1], ref_v);
   //ROS_INFO("ref_v from mpc: %lf\n", ref_v);
   model_control_pub.publish(model_control);
