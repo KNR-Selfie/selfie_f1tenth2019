@@ -34,6 +34,7 @@ int main(int argc, char** argv)
   ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
   ros::Publisher optimal_path = nh.advertise<nav_msgs::Path>("optimal_path", 1000);
   ros::Publisher polynomial_path = nh.advertise<nav_msgs::Path>("polynomial_path", 1000);
+  // order of the forces - [Ffx, Ffy, Frx, Fry, |Ff|, |Fr|]
   ros::Publisher tyre_forces = nh.advertise<std_msgs::Float64MultiArray>("tyre_forces", 1000);
   ros::Subscriber speed_sub = nh.subscribe("speed", 1000, speedCallback);
   ros::Subscriber closest_path_points = nh.subscribe("closest_path_points", 1000, pathCallback);
@@ -50,14 +51,12 @@ int main(int argc, char** argv)
   pnh.param("delta_time", p.delta_time, 0.2);
   pnh.param("loop_rate", loop_rate, 10);
   pnh.param("max_mod_delta", p.max_mod_delta, 0.44);
-  //pnh.param("max_acceleration", p.max_acceleration, 1.0);
-  //pnh.param("max_decceleration", p.max_decceleration, -1.0);
   pnh.param("cte_weight", p.cte_weight, 100);
   pnh.param("epsi_weight", p.epsi_weight, 100);
   pnh.param("delta_weight", p.delta_weight, 2000);
   pnh.param("v_weight", p.v_weight, 100);
   pnh.param("diff_delta_weight", p.diff_delta_weight, 100);
-  //pnh.param("diff_a_weight", p.diff_a_weight, 10);
+  pnh.param("diff_v_weight", p.diff_v_weight, 100);
   pnh.param("ref_v", p.ref_v, 4.0);
   pnh.param("max_v", p.max_v, 0.5);
   pnh.param("min_v", p.min_v, -0.1);
@@ -102,8 +101,6 @@ int main(int argc, char** argv)
     VectorXd pathCoeffs;
     pathCoeffs = polyfit(x, y, POLYFIT_ORDER);
 
-    std::cout << pathCoeffs[0]  << " " << pathCoeffs[1] << " " << pathCoeffs[2] << std::endl;
-
     VectorXd state(STATE_VARS);
     state(0) = 0; //x
     state(1) = 0; //y
@@ -116,7 +113,6 @@ int main(int argc, char** argv)
     state(4) = CppAD::atan(pathCoeffs[1]);
 
     controls = mpc.getControls(pathCoeffs, state);
-    //cout << "delta1: " << controls.delta << endl;
 
     std_msgs::Float64 target_speed_msg;
     std_msgs::Float64 steering_angle_msg;
@@ -138,6 +134,7 @@ int main(int argc, char** argv)
     steering_angle.publish(steering_angle_msg);
     optimal_path.publish(optimal_path_msg);
     polynomial_path.publish(polynomial_path_msg);
+    // order of the forces - [Ffx, Ffy, Frx, Fry, |Ff|, |Fr|]
     tyre_forces.publish(forces);
 
     ros::spinOnce();

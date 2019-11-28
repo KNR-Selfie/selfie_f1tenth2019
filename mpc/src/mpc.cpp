@@ -199,9 +199,6 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
       constraints_upperbound[i] = pow(params.friction_coefficient*params.mass*g*LF/(LF + LR), 2);
   }
 
-  std::cout << params.friction_coefficient*params.mass*g*LR/(LF + LR) << std::endl;
-  std::cout << params.friction_coefficient*params.mass*g*LF/(LF + LR) << std::endl;
-
   // Object that computes the cost function f and the constraints g_i
   FG_eval fg_eval(pathCoeffs);
   //options for IPOPT optimizer
@@ -222,9 +219,13 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   CppAD::ipopt::solve_result<Dvector> solution;
 
   // Optimize the cost function
+  double calc_time = ros::Time::now().toSec();
   CppAD::ipopt::solve<Dvector, FG_eval>(
     options, vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,
     constraints_upperbound, fg_eval, solution);
+
+  calc_time = ros::Time::now().toSec() - calc_time;
+  ROS_INFO("%lf\n", calc_time);
 
   // Display the cost
   auto cost = solution.obj_value;
@@ -257,8 +258,8 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   double gamma = params.gamma;
   double m = params.mass;
 
+  // Calculate forces so they can be sent over a topic
   double denom = gamma*(lr*sin(delta1) + lf*cos(delta1)) + lf*(1 - gamma);
-  // TODO przepisać wzorki
   double Ffx = I*a*kappa*sin(delta1)*(1 - gamma)
   - a*lf*m*cos(beta)*(gamma*sin(delta1) - cos(delta1))
   + kappa*lf*m*v1*v1*cos(delta1)*sin(beta)*(gamma/denom - 1);
@@ -301,7 +302,7 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         fg[0] += params.epsi_weight * CppAD::pow(CppAD::sin(vars[epsi_start + t]), 2);
     }
 
-    // Minimize the use of actuators.
+    // Penalize high delta values and going below maximum velocity
     for (unsigned int t = 0; t < N - 1; ++t)
     {
         fg[0] += params.delta_weight * CppAD::pow(vars[delta_start + t], 2);
@@ -370,7 +371,7 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> gamma = params.gamma;
         AD<double> m = params.mass;
 
-        AD<double> denom = gamma*(lr*CppAD::sin(delta1) + lf*CppAD::cos(delta1)) + lf*(1 - gamma);
+        /*AD<double> denom = gamma*(lr*CppAD::sin(delta1) + lf*CppAD::cos(delta1)) + lf*(1 - gamma);
         // TODO przepisać wzorki
         AD<double> Ffx = I*a*kappa*CppAD::sin(delta1)*(1 - gamma)
         - a*lf*m*CppAD::cos(beta)*(gamma*CppAD::sin(delta1) - CppAD::cos(delta1))
@@ -386,7 +387,11 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
 
         AD<double> Frx = -gamma*kappa*lf*m*CppAD::cos(delta1)*CppAD::sin(beta)*v1*v1
         + I*a*gamma*kappa*CppAD::sin(delta1) + a*gamma*lf*m*CppAD::cos(beta)*CppAD::cos(delta1)/denom;
-
+        */
+        AD<double> Ffx = 2.0;
+        AD<double> Ffy = 2.0;
+        AD<double> Frx = 2.0;
+        AD<double> Fry = 2.0;
         fg[front_force_start + t - 1] = Ffx*Ffx + Ffy*Ffy;
         fg[rear_force_start + t - 1] = Frx*Frx + Fry*Fry;
 
