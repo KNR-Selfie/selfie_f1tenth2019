@@ -1,8 +1,10 @@
 #include "ros/ros.h"
 #include <tf/transform_listener.h>
 #include <cmath>
+#include "time.h"
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float32.h"
+#include "ackermann_msgs/AckermannDriveStamped.h"
 #include "std_msgs/Float64MultiArray.h"
 #include "nav_msgs/Path.h"
 #include "geometry_msgs/PointStamped.h"
@@ -34,6 +36,7 @@ int main(int argc, char** argv)
   ros::Publisher steering_angle = nh.advertise<std_msgs::Float64>("steering_angle", 1000);
   ros::Publisher optimal_path = nh.advertise<nav_msgs::Path>("optimal_path", 1000);
   ros::Publisher polynomial_path = nh.advertise<nav_msgs::Path>("polynomial_path", 1000);
+  ros::Publisher drive = nh.advertise<ackermann_msgs::AckermannDriveStamped>("drive", 1000);
   // order of the forces - [Ffx, Ffy, Frx, Fry, |Ff|, |Fr|]
   ros::Publisher tyre_forces = nh.advertise<std_msgs::Float64MultiArray>("tyre_forces", 1000);
   ros::Subscriber speed_sub = nh.subscribe("speed", 1000, speedCallback);
@@ -62,23 +65,25 @@ int main(int argc, char** argv)
   pnh.param("min_v", p.min_v, -0.1);
   pnh.param("cornering_safety_weight", p.cornering_safety_weight, 0.0);
   pnh.param("friction_coefficient", p.friction_coefficient, 0.9);
-  pnh.param("moment_of_inertia", p.moment_of_inertia, 2380.0);
+  pnh.param("moment_of_inertia", p.moment_of_inertia, 15.0);
   pnh.param("gamma", p.gamma, 0.5);
-  pnh.param("mass", p.mass, 1292.0);
+  pnh.param("mass", p.mass, 10.0);
 
 
   MPC mpc(p);
-  ros::Rate rate(loop_rate);
+  //ros::Rate rate(loop_rate);
   double x, y, orientation;
   Controls controls;
+  int last_time;
 
   while(ros::ok())
   {
+
     if(path_points.empty())
     {
       ros::spinOnce();
       cout << path_points.size() << endl;
-      rate.sleep();
+      //rate.sleep();
       continue;
     }
     //get current state info
@@ -112,13 +117,22 @@ int main(int argc, char** argv)
     state(3) = pathCoeffs[0];
     state(4) = CppAD::atan(pathCoeffs[1]);
 
+    clock_t time = clock();
     controls = mpc.getControls(pathCoeffs, state);
+    time = clock() - time;
+    std::cout << "mpc_exec_time: " << (double)time/CLOCKS_PER_SEC << std::endl;
 
     std_msgs::Float64 target_speed_msg;
     std_msgs::Float64 steering_angle_msg;
     std_msgs::Float64MultiArray forces;
     nav_msgs::Path optimal_path_msg;
     nav_msgs::Path polynomial_path_msg;
+
+    ackermann_msgs::AckermannDriveStamped drive_msg;
+    drive_msg.header.stamp.sec = ros::Time::now().sec;
+    drive_msg.header.stamp.nsec = ros::Time::now().nsec;
+    drive_msg.drive.steering_angle = controls.delta;
+    drive_msg.drive.speed = controls.velocity;
 
 
     target_speed_msg.data = controls.velocity;
@@ -127,9 +141,7 @@ int main(int argc, char** argv)
     optimal_path_msg = controls.predicted_path;
     polynomial_path_msg = controls.polynomial_path;
 
-    geometry_msgs::Twist velocity_msg = getTwist(target_speed_msg.data, steering_angle_msg.data, yaw);
-
-    f1sim_cmd.publish(velocity_msg);
+    drive.publish(drive_msg);
     target_speed.publish(target_speed_msg);
     steering_angle.publish(steering_angle_msg);
     optimal_path.publish(optimal_path_msg);
@@ -138,7 +150,9 @@ int main(int argc, char** argv)
     tyre_forces.publish(forces);
 
     ros::spinOnce();
-    rate.sleep();
+
+
+    //rate.sleep();
   }
   return 0;
 }
@@ -205,6 +219,7 @@ VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order)
 
   return result;
 }
+
 
 // equations from https://borrelli.me.berkeley.edu/pdfpub/IV_KinematicMPC_jason.pdf
 geometry_msgs::Twist getTwist(double v, double delta, double psi)

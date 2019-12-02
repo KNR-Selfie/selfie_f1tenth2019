@@ -1,27 +1,34 @@
 <launch>
-  <arg name="path_file" />
 
-  <node pkg="path_extractor" type="path_extractor.py" name="path_extractor" args="$(arg path_file)">
-    <param name="path_points_backwards" type="int" value="0"/>
-    <param name="path_points_forwards" type="int" value="6" />
-    <param name="path_direction" type="bool" value="false" />
-  </node>
+  <node pkg="ackermann_vehicle_gazebo" name="map_to_baselink_pub.py" type="map_to_baselink_pub.py" output="screen"/>
+
+  <node pkg="skidpad_planner" type="skidpad_planner" name="skidpad_planner">
+        <param name="~/skipad/R" type="double" value="5.0"/>
+        <param name="~/skipad/a" type="double" value="5.0"/>
+        <param name="~/skipad/b" type="double" value="5.0"/>
+        <param name="~/path/start" type="double" value="-1.0"/>
+        <param name="~/path/stop" type="double" value="2.5"/>
+        <param name="~/path/step" type="double" value="0.25"/>
+    </node >
 
   <node pkg="mpc" type="mpc" name="mpc" output="screen">
     <param name="prediction_horizon" type="int" value="10" />
-    <param name="delta_time" type="double" value="0.05" />
-    <param name="loop_rate" type="int" value="10" />
-    <param name="max_mod_delta" type="double" value="4.4" />
-    <param name="max_acceleration" type="double" value="1" />
-    <param name="max_decceleration" type="double" value="-1" />
-    <param name="ref_v" type="double" value="2" />
-    <param name="cte_weight" type="int" value="100" />
-    <param name="epsi_weight" type="int" value="15" />
-    <param name="v_weight" type="int" value="15" />
-    <param name="delta_weight" type="int" value="2000" />
-    <param name="a_weight" type="int" value="100" />
-    <param name="diff_delta_weight" type="int" value="100" />
-    <param name="diff_a_weight" type="int" value="10" />
-  </node>
+      <param name="delta_time" type="double" value="0.12" />
+      <param name="loop_rate" type="int" value="10" />
+      <param name="max_mod_delta" type="double" value="0.44" />
+      <param name="cte_weight" type="int" value="85" />
+      <param name="epsi_weight" type="int" value="40" />
+      <param name="v_weight" type="int" value="150" />
+      <param name="delta_weight" type="int" value="0" />
+      <param name="diff_delta_weight" type="int" value="100" />
+      <param name="diff_v_weight" type="int" value="10" />
+      <param name="max_v" type="double" value="3" />
+      <param name="min_v" type="double" value="-0.2" />
+      <param name="cornering_safety_weight" type="double" value="40" />
+    </node>
+
+
+
+
 
 </launch>

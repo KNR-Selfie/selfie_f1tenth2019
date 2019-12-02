@@ -370,8 +370,8 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> kappa = CppAD::sin(beta)/lr;
         AD<double> gamma = params.gamma;
         AD<double> m = params.mass;
-
-        /*AD<double> denom = gamma*(lr*CppAD::sin(delta1) + lf*CppAD::cos(delta1)) + lf*(1 - gamma);
+/*
+        AD<double> denom = gamma*(lr*CppAD::sin(delta1) + lf*CppAD::cos(delta1)) + lf*(1 - gamma);
         // TODO przepisać wzorki
         AD<double> Ffx = I*a*kappa*CppAD::sin(delta1)*(1 - gamma)
         - a*lf*m*CppAD::cos(beta)*(gamma*CppAD::sin(delta1) - CppAD::cos(delta1))
@@ -387,11 +387,29 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
 
         AD<double> Frx = -gamma*kappa*lf*m*CppAD::cos(delta1)*CppAD::sin(beta)*v1*v1
         + I*a*gamma*kappa*CppAD::sin(delta1) + a*gamma*lf*m*CppAD::cos(beta)*CppAD::cos(delta1)/denom;
-        */
-        AD<double> Ffx = 2.0;
+*/
+
+        AD<double> denom = 0.5*(lr*delta1 + lf) + lf*(0.5);
+        // TODO przepisać wzorki
+        AD<double> Ffx = I*a*kappa*delta1*(0.5)
+        - a*lf*m*(0.5*delta1 - 1)
+        + kappa*lf*m*v1*v1*beta*(0.5/denom - 1);
+
+        AD<double> Ffy = I*a*kappa*delta1 + 0.5*(1 - delta1) +
+        a*lf*m*delta1*(0.5 - 1) + a*0.5*lr*m
+        -0.5*kappa*m*v1*v1*beta*(lr + lf*delta1/denom);
+
+        AD<double> Fry = -(I*a*kappa - a*lf*m*beta
+        -kappa*lf*m*v1*v1 + 0.5*kappa*lr*m*v1*v1*(delta1 - beta)
+        + a*0.5*lr*m)/denom;
+
+        AD<double> Frx = -0.5*kappa*lf*m*beta*v1*v1
+        + I*a*0.5*kappa*delta1 + a*0.5*lf*m/denom;
+
+        /*AD<double> Ffx = 2.0;
         AD<double> Ffy = 2.0;
         AD<double> Frx = 2.0;
-        AD<double> Fry = 2.0;
+        AD<double> Fry = 2.0;*/
         fg[front_force_start + t - 1] = Ffx*Ffx + Ffy*Ffy;
         fg[rear_force_start + t - 1] = Frx*Frx + Fry*Fry;
 

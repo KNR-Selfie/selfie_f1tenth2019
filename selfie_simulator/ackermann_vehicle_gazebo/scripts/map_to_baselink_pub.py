@@ -7,14 +7,13 @@ from gazebo_msgs.msg import ModelStates
 
 def handle_model_pose(msg):
     br = tf.TransformBroadcaster()
-    print(msg.pose[1].position.x)
     br.sendTransform((msg.pose[1].position.x, msg.pose[1].position.y,
                      msg.pose[1].position.z),
                      (msg.pose[1].orientation.x, msg.pose[1].orientation.y,
                      msg.pose[1].orientation.z, msg.pose[1].orientation.w),
                      rospy.Time.now(),
-                     "base_",
-                     "map");
+                     "base_link",
+                     "map")
 
 
 

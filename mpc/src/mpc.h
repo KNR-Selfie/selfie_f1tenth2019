@@ -19,9 +19,9 @@
 #define FORCE_VARS 2
 #define ACTUATORS_VARS 2
 // length from rear axis to COG
-#define LF 2
+#define LF 0.245
 // total length
-#define LT 4
+#define LT 0.243
 
 using CppAD::AD;
 using Eigen::VectorXd;
