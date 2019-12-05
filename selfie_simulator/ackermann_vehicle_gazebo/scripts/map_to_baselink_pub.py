@@ -16,7 +16,6 @@ def handle_model_pose(msg):
                      "map")
 
 
-
 while not rospy.is_shutdown():
     rospy.init_node("map_to_baselink_pub")
     rospy.Subscriber("/gazebo/model_states",

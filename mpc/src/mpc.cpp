@@ -88,7 +88,7 @@ Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
   const int force_count = 6;
   std::vector<double> forces;
   // N-1 for the sake of it being easier to understand
-  forces.insert(forces.begin(), solution.begin() + 2*(N-1) + 3, solution.begin() + 2*(N-1) + 3 + force_count);
+  forces.insert(forces.begin(), solution.begin() + 2*(N-1) + 4, solution.begin() + 2*(N-1) + 4 + force_count);
   std::swap(ret.forces.data, forces);
 
   return ret;
@@ -111,6 +111,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   double cte = state[3];
   //Heading offset from the desired path
   double epsi = state[4];
+  double speed = state[5];
 
   /*
    * Initiate indexing variables
@@ -154,6 +155,8 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   vars_upperbound[cte_start] = cte;
   vars_lowerbound[epsi_start] = epsi;
   vars_upperbound[epsi_start] = epsi;
+  vars_lowerbound[v_start] = speed;
+  vars_upperbound[v_start] = speed;
 
   // The upper and lower limits of delta are set to -25 and 25
   // degrees in radians
@@ -370,9 +373,8 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> kappa = CppAD::sin(beta)/lr;
         AD<double> gamma = params.gamma;
         AD<double> m = params.mass;
-/*
+
         AD<double> denom = gamma*(lr*CppAD::sin(delta1) + lf*CppAD::cos(delta1)) + lf*(1 - gamma);
-        // TODO przepisać wzorki
         AD<double> Ffx = I*a*kappa*CppAD::sin(delta1)*(1 - gamma)
         - a*lf*m*CppAD::cos(beta)*(gamma*CppAD::sin(delta1) - CppAD::cos(delta1))
         + kappa*lf*m*v1*v1*CppAD::cos(delta1)*CppAD::sin(beta)*(gamma/denom - 1);
@@ -387,10 +389,9 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
 
         AD<double> Frx = -gamma*kappa*lf*m*CppAD::cos(delta1)*CppAD::sin(beta)*v1*v1
         + I*a*gamma*kappa*CppAD::sin(delta1) + a*gamma*lf*m*CppAD::cos(beta)*CppAD::cos(delta1)/denom;
-*/
 
+/*
         AD<double> denom = 0.5*(lr*delta1 + lf) + lf*(0.5);
-        // TODO przepisać wzorki
         AD<double> Ffx = I*a*kappa*delta1*(0.5)
         - a*lf*m*(0.5*delta1 - 1)
         + kappa*lf*m*v1*v1*beta*(0.5/denom - 1);
@@ -405,7 +406,7 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
 
         AD<double> Frx = -0.5*kappa*lf*m*beta*v1*v1
         + I*a*0.5*kappa*delta1 + a*0.5*lf*m/denom;
-
+*/
         /*AD<double> Ffx = 2.0;
         AD<double> Ffy = 2.0;
         AD<double> Frx = 2.0;

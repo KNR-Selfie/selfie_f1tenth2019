@@ -16,7 +16,7 @@
 using namespace std;
 using Eigen::VectorXd;
 
-double speed = 1;
+double speed = 0;
 vector <geometry_msgs::PointStamped> path_points;
 
 void speedCallback(const std_msgs::Float64::ConstPtr& msg);
@@ -64,14 +64,14 @@ int main(int argc, char** argv)
   pnh.param("max_v", p.max_v, 0.5);
   pnh.param("min_v", p.min_v, -0.1);
   pnh.param("cornering_safety_weight", p.cornering_safety_weight, 0.0);
-  pnh.param("friction_coefficient", p.friction_coefficient, 0.9);
+  pnh.param("friction_coefficient", p.friction_coefficient, 0.8);
   pnh.param("moment_of_inertia", p.moment_of_inertia, 15.0);
   pnh.param("gamma", p.gamma, 0.5);
-  pnh.param("mass", p.mass, 10.0);
+  pnh.param("mass", p.mass, 20.0);
 
 
   MPC mpc(p);
-  //ros::Rate rate(loop_rate);
+  ros::Rate rate(loop_rate);
   double x, y, orientation;
   Controls controls;
   int last_time;
@@ -83,7 +83,7 @@ int main(int argc, char** argv)
     {
       ros::spinOnce();
       cout << path_points.size() << endl;
-      //rate.sleep();
+      rate.sleep();
       continue;
     }
     //get current state info
@@ -106,7 +106,7 @@ int main(int argc, char** argv)
     VectorXd pathCoeffs;
     pathCoeffs = polyfit(x, y, POLYFIT_ORDER);
 
-    VectorXd state(STATE_VARS);
+    VectorXd state(STATE_VARS + 1);
     state(0) = 0; //x
     state(1) = 0; //y
     tf::Quaternion base_link_rot_qaternion = transform.getRotation();
@@ -116,6 +116,7 @@ int main(int argc, char** argv)
     state(2) = 0; //psi
     state(3) = pathCoeffs[0];
     state(4) = CppAD::atan(pathCoeffs[1]);
+    state(5) = speed;
 
     clock_t time = clock();
     controls = mpc.getControls(pathCoeffs, state);
@@ -152,7 +153,7 @@ int main(int argc, char** argv)
     ros::spinOnce();
 
 
-    //rate.sleep();
+    rate.sleep();
   }
   return 0;
 }
