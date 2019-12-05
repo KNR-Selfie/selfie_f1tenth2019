@@ -3,7 +3,6 @@
 #include "selfie_msgs/MPCControl.h"
 #include "selfie_msgs/ModelControl.h"
 #include <cmath>
-#define MIN_SPEED 0.5
 
 // set target control and compute torque with PID
 void target_controlCallback(const selfie_msgs::MPCControl::ConstPtr& msg);
@@ -16,7 +15,7 @@ double pidController();
 // 
 double steering_angle = 0;
 // speed received from mpc
-double ref_v = MIN_SPEED;
+double ref_v;
 // speed of the model
 double model_v = 0;
 // previous error for pid
@@ -27,6 +26,8 @@ double integral = 0;
 double prev_t;
 // pid params
 double KP, KI, KD;
+
+double min_speed;
 
 ros::Publisher model_control_pub;
 
@@ -41,6 +42,8 @@ int main(int argc, char** argv){
   pnh.param("KP", KP, 1.0);
   pnh.param("KI", KI, 0.0);
   pnh.param("KD", KD, 0.0);
+  pnh.param("min_speed", min_speed, 1.0);
+  ref_v = min_speed;
 
   prev_t = ros::Time::now().toSec();
   ros::spin();
@@ -54,7 +57,7 @@ void target_controlCallback(const selfie_msgs::MPCControl::ConstPtr& msg){
   selfie_msgs::ModelControl model_control;
   model_control.steering_angle = msg->steering_angle; // delta
   ref_v = msg->speed;
-  if(ref_v < MIN_SPEED) ref_v = MIN_SPEED; 
+  if(ref_v < min_speed) ref_v = min_speed; 
   model_control.torque = pidController(); // torque
   //ROS_INFO("torque: %lf, speed: %lf\n", model_control.data[1], ref_v);
   //ROS_INFO("ref_v from mpc: %lf\n", ref_v);
