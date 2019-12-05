@@ -152,6 +152,7 @@ int main(int argc, char** argv)
 
     ros::spinOnce();
 
+    std::cout << "speed: " << speed << std::endl;
 
     rate.sleep();
   }

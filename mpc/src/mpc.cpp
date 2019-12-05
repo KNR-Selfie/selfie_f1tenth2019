@@ -202,6 +202,10 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
       constraints_upperbound[i] = pow(params.friction_coefficient*params.mass*g*LF/(LF + LR), 2);
   }
 
+  std::cout << "front constraint" << constraints_upperbound[front_force_start]
+            << "rear constraint" << constraints_upperbound[rear_force_start]
+            << std::endl;
+
   // Object that computes the cost function f and the constraints g_i
   FG_eval fg_eval(pathCoeffs);
   //options for IPOPT optimizer
