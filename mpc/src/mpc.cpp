@@ -31,10 +31,10 @@ MPC::MPC(Params p)
   cte_start = psi_start + N;
   epsi_start = cte_start + N;
 
-  delta_start = epsi_start + N - 1;
+  delta_start = epsi_start + N;
   v_start = delta_start + N - 1;
 
-  acceleration_start = epsi_start + N - 1;
+  acceleration_start = epsi_start + N;
 }
 
 
@@ -112,7 +112,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   //Set the number of model variables
   size_t n_vars = STATE_VARS * N + ACTUATORS_VARS * (N - 1);
   //Set the number of constraints
-  size_t n_constraints = STATE_VARS * N + ACCELERATION_VARS * (N - 1);
+  size_t n_constraints = STATE_VARS * N + ACCELERATION_VARS * N;
 
   //Initial value of the independent variables
   //SHOULD BE 0 besides initial state
@@ -173,7 +173,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   // state and bounds on actuators
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
-  for (size_t i = 0; i < epsi_start; ++i)
+  for (size_t i = 0; i < acceleration_start; ++i)
   {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
@@ -183,10 +183,10 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   double lr = params.lr;
   double lf = params.lf;
 
-  for(size_t i = acceleration_start; i < acceleration_start; ++i)
+  for(size_t i = acceleration_start; i < n_constraints; ++i)
   {
       constraints_lowerbound[i] = 0;
-      constraints_upperbound[i] = pow(g*params.friction_coefficient , 2);
+      constraints_upperbound[i] = 0.2*pow(g*params.friction_coefficient , 2);
   }
 
   // Object that computes the cost function f and the constraints g_i
@@ -214,7 +214,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
     constraints_upperbound, fg_eval, solution);
 
   // Display the cost
-  auto cost = solution.obj_value;
+  auto cost = solution.obj_value; // To jest chyba int
   std::cout << "Cost " << cost << std::endl;
 
   // Return only the first actuator values
@@ -278,7 +278,7 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
     fg[1 + epsi_start] = 0;
     fg[1 + acceleration_start] = 0;
 
-    for (unsigned int t = 1; t < N; ++t)
+    for (unsigned int t = 1; t < N - 1; ++t)
     {
         // The state at time t_current+1 .
         AD<double> x1 = vars[x_start + t];
@@ -302,13 +302,11 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> psides1 = CppAD::atan(pathCoeffs[1] + 2 * pathCoeffs[2] * x1);
 
         AD<double> dt = params.delta_time;
-        AD<double> I = params.moment_of_inertia;
         AD<double> lr = params.lr;
         AD<double> lf = params.lf;
+        AD<double> beta = CppAD::atan(CppAD::tan(delta0) * lr/(lf + lr));
         AD<double> at = (v1 - v0)/dt; // tangent acceleration
-        AD<double> beta = CppAD::atan2(CppAD::tan(delta0) * lr, lf + lr);
-        AD<double> kappa = CppAD::sin(beta)/lr;
-        AD<double> an = (v1*v1/lr)*CppAD::sin(beta);
+        AD<double> an = (v1*v1/lr)*CppAD::sin(beta); // normal acceleration
 
         // Total acceleration
         fg[1 + acceleration_start + t] = an*an + at*at;
