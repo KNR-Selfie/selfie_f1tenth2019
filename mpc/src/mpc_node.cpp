@@ -68,6 +68,8 @@ int main(int argc, char** argv)
   pnh.param("moment_of_inertia", p.moment_of_inertia, 15.0);
   pnh.param("gamma", p.gamma, 0.5);
   pnh.param("mass", p.mass, 20.0);
+  pnh.param("lf", p.lf, 0.25);
+  pnh.param("lr", p.lr, 0.25);
 
 
   MPC mpc(p);
@@ -125,7 +127,6 @@ int main(int argc, char** argv)
 
     std_msgs::Float64 target_speed_msg;
     std_msgs::Float64 steering_angle_msg;
-    std_msgs::Float64MultiArray forces;
     nav_msgs::Path optimal_path_msg;
     nav_msgs::Path polynomial_path_msg;
 
@@ -138,7 +139,6 @@ int main(int argc, char** argv)
 
     target_speed_msg.data = controls.velocity;
     steering_angle_msg.data = controls.delta;
-    forces = controls.forces;
     optimal_path_msg = controls.predicted_path;
     polynomial_path_msg = controls.polynomial_path;
 
@@ -147,8 +147,6 @@ int main(int argc, char** argv)
     steering_angle.publish(steering_angle_msg);
     optimal_path.publish(optimal_path_msg);
     polynomial_path.publish(polynomial_path_msg);
-    // order of the forces - [Ffx, Ffy, Frx, Fry, |Ff|, |Fr|]
-    tyre_forces.publish(forces);
 
     ros::spinOnce();
 
@@ -224,7 +222,7 @@ VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order)
 
 
 // equations from https://borrelli.me.berkeley.edu/pdfpub/IV_KinematicMPC_jason.pdf
-geometry_msgs::Twist getTwist(double v, double delta, double psi)
+/*geometry_msgs::Twist getTwist(double v, double delta, double psi, double lf, double lr)
 {
   cout << "delta: " << delta << endl;
   double beta = atan( (LT - LF)/LT * tan(delta) );
@@ -244,3 +242,4 @@ geometry_msgs::Twist getTwist(double v, double delta, double psi)
 
   return cmd_vel;
 }
+*/

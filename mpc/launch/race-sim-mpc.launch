@@ -1,37 +1,39 @@
 <launch>
 
-  <node pkg="ackermann_vehicle_gazebo" name="map_to_baselink_pub" type="map_to_baselink_pub.py" output="screen"/>
+	<node pkg="ackermann_vehicle_gazebo" name="map_to_baselink_pub" type="map_to_baselink_pub.py" output="screen"/>
 
-  <node pkg="ackermann_vehicle_gazebo" name="speed_from_gazebo_pub" type="speed_from_gazebo_pub.py" output="screen"/>
+	<node pkg="ackermann_vehicle_gazebo" name="speed_from_gazebo_pub" type="speed_from_gazebo_pub.py" output="screen"/>
 
-  <node pkg="skidpad_planner" type="skidpad_planner" name="skidpad_planner">
-        <param name="~/skipad/R" type="double" value="5.0"/>
-        <param name="~/skipad/a" type="double" value="5.0"/>
-        <param name="~/skipad/b" type="double" value="5.0"/>
-        <param name="~/path/start" type="double" value="-1.0"/>
-        <param name="~/path/stop" type="double" value="2.5"/>
-        <param name="~/path/step" type="double" value="0.25"/>
-    </node >
+	<node pkg="skidpad_planner" type="skidpad_planner" name="skidpad_planner">
+			<param name="~/skipad/R" type="double" value="5.0"/>
+			<param name="~/skipad/a" type="double" value="5.0"/>
+			<param name="~/skipad/b" type="double" value="5.0"/>
+			<param name="~/path/start" type="double" value="-1.0"/>
+			<param name="~/path/stop" type="double" value="2.5"/>
+			<param name="~/path/step" type="double" value="0.25"/>
+	</node >
 
-  <node pkg="mpc" type="mpc" name="mpc" output="screen">
-      <param name="prediction_horizon" type="int" value="10" />
-      <param name="delta_time" type="double" value="0.12" />
-      <param name="loop_rate" type="int" value="10" />
-      <param name="max_mod_delta" type="double" value="0.44" />
-      <param name="cte_weight" type="int" value="85" />
-      <param name="epsi_weight" type="int" value="40" />
-      <param name="v_weight" type="int" value="150" />
-      <param name="delta_weight" type="int" value="0" />
-      <param name="diff_delta_weight" type="int" value="100" />
-      <param name="diff_v_weight" type="int" value="10" />
-      <param name="max_v" type="double" value="3" />
-      <param name="min_v" type="double" value="-0.2" />
-      <param name="cornering_safety_weight" type="double" value="0" />
-      <remap from="closest_path_points" to="path"/>
-    </node>
-
-
-
-
+	<node pkg="mpc" type="mpc" name="mpc" output="screen">
+			<param name="prediction_horizon" type="int" value="10" />
+			<param name="delta_time" type="double" value="0.12" />
+			<param name="loop_rate" type="int" value="10" />
+			<param name="max_mod_delta" type="double" value="0.44" />
+			<param name="cte_weight" type="int" value="85" />
+			<param name="epsi_weight" type="int" value="40" />
+			<param name="v_weight" type="int" value="150" />
+			<param name="delta_weight" type="int" value="0" />
+			<param name="diff_delta_weight" type="int" value="100" />
+			<param name="diff_v_weight" type="int" value="10" />
+			<param name="max_v" type="double" value="3" />
+			<param name="min_v" type="double" value="-0.2" />
+			<param name="cornering_safety_weight" type="double" value="0.0" />
+			<param name="friction_coefficient" type="double" value="0.8" />
+			<param name="moment_of_inertia" type="double" value="20.0" />
+			<param name="gamma" type="double" value="0.5" />
+			<param name="mass" type="double" value="10.0" />
+			<param name="lf" type="double" value="0.25" />
+			<param name="lr" type="double" value="0.25" />
+			<remap from="closest_path_points" to="path"/>
+		</node>
 
 </launch>

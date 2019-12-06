@@ -16,12 +16,8 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float64MultiArray.h"
 #define STATE_VARS 5
-#define FORCE_VARS 2
+#define ACCELERATION_VARS 1
 #define ACTUATORS_VARS 2
-// length from rear axis to COG
-#define LF 0.245
-// total length
-#define LT 0.5
 
 using CppAD::AD;
 using Eigen::VectorXd;
@@ -52,7 +48,8 @@ struct Params
   double max_v;
   double min_v;
   double cornering_safety_weight;
-
+  double lf;
+  double lr;
 };
 
 // Struct that is returned by MPC
@@ -62,7 +59,6 @@ struct Controls
   double delta;
   nav_msgs::Path predicted_path;
   nav_msgs::Path polynomial_path;
-  std_msgs::Float64MultiArray forces;
 };
 
 //Interface for interactions with ros
