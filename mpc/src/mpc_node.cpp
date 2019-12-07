@@ -65,9 +65,6 @@ int main(int argc, char** argv)
   pnh.param("min_v", p.min_v, -0.1);
   pnh.param("cornering_safety_weight", p.cornering_safety_weight, 0.0);
   pnh.param("friction_coefficient", p.friction_coefficient, 0.8);
-  pnh.param("moment_of_inertia", p.moment_of_inertia, 15.0);
-  pnh.param("gamma", p.gamma, 0.5);
-  pnh.param("mass", p.mass, 20.0);
   pnh.param("lf", p.lf, 0.25);
   pnh.param("lr", p.lr, 0.25);
 
