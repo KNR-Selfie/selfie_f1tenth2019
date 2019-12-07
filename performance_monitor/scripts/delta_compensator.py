@@ -47,17 +47,19 @@ if __name__ == '__main__':
 
     angle_lookup_table = rospy.get_param('~angle_lookup_table', 1)
     speed_lookup_table = rospy.get_param('~speed_lookup_table', 1)
+    setpoint_lookup_table = rospy.get_param('~setpoint_lookup_table', 1)
 
     angle_lookup_table = join(join(dirname(dirname(abspath(__file__))),'data'), angle_lookup_table)
     speed_lookup_table = join(join(dirname(dirname(abspath(__file__))),'data'), speed_lookup_table)
 
     rospy.loginfo(angle_lookup_table)
     rospy.loginfo(speed_lookup_table)
+    rospy.loginfo(setpoint_lookup_table)
 
     cmd_pub = rospy.Publisher('/raw_drive', AckermannDriveStamped, queue_size=1)
     speed_pub = rospy.Publisher('/speed', Float32, queue_size=1)
 
-    converter = Converter(angle_lookup_table, speed_lookup_table, cmd_pub, speed_pub)
+    converter = Converter(angle_lookup_table, speed_lookup_table, setpoint_lookup_table, cmd_pub, speed_pub)
 
     cmd_sub = rospy.Subscriber('/target_drive', AckermannDriveStamped, converter.target_drive_callback)
     speed_sub = rospy.Subscriber('/shaft_speed', Float32, converter.shaft_speed_callback)
