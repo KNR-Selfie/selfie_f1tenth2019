@@ -1,0 +1,14 @@
+<launch>
+    <include file="$(find selfie_launch)/launch/subsystems/lidars.launch" />
+
+    <node pkg="selfie_stm32_bridge" type="selfie_stm32_bridge" name="stm_bridge" output="screen">
+        <remap from="drive" to="raw_drive"/>
+        <remap from="speed" to="shaft_speed" />
+    </node>
+    
+    <node pkg="performance_monitor" type="delta_compensator.py" name="delta_compensator">
+        <param name="angle_lookup_table" value="$(find performance_monitor)/data/angle_data.csv"/>
+        <param name="speed_lookup_table" value="$(find performance_monitor)/data/speed_angle_ratio_data.csv"/>
+        <param name="setpoint_lookup_table" value="$(find performance_monitor)/data/speed_setpoint_data.csv"/>
+    </node>
+</launch>
