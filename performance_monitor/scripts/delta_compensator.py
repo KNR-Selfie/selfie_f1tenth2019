@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     converter = Converter(angle_lookup_table, speed_lookup_table, setpoint_lookup_table, cmd_pub, speed_pub)
 
-    cmd_sub = rospy.Subscriber('/target_drive', AckermannDriveStamped, converter.target_drive_callback)
+    cmd_sub = rospy.Subscriber('/drive', AckermannDriveStamped, converter.target_drive_callback)
     speed_sub = rospy.Subscriber('/shaft_speed', Float32, converter.shaft_speed_callback)
     
     rospy.spin()
