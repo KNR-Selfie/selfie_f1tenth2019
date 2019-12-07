@@ -1,1 +1,0 @@
-rostopic pub /drive ackermann_msgs/AckermannDriveStamped '{drive: {steering_angle: 0.55, steering_angle_velocity: 0, speed: 0, acceleration: 0, jerk: 0}}'

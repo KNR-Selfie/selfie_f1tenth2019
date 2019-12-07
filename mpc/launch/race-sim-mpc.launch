@@ -28,8 +28,11 @@
 			<param name="min_v" type="double" value="-0.2" />
 			<param name="cornering_safety_weight" type="double" value="0.0" />
 			<param name="friction_coefficient" type="double" value="0.8" />
-			<param name="lf" type="double" value="0.165" />
-			<param name="lr" type="double" value="0.165" />
+			<param name="moment_of_inertia" type="double" value="20.0" />
+			<param name="gamma" type="double" value="0.5" />
+			<param name="mass" type="double" value="10.0" />
+			<param name="lf" type="double" value="0.25" />
+			<param name="lr" type="double" value="0.25" />
 			<remap from="closest_path_points" to="path"/>
 		</node>
 
