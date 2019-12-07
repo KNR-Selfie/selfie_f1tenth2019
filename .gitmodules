@@ -1,0 +1,3 @@
+[submodule "skidpad_planner"]
+	path = skidpad_planner
+	url = git@github.com:KNR-Selfie/skidpad_planner.git
