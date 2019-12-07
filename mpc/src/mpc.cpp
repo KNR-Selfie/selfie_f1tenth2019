@@ -159,7 +159,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   }
 
   //Velocity upper and lower limits
-  for (size_t i = v_start; i < n_vars; ++i)
+  for (size_t i = v_start + 1; i < n_vars; ++i)
   {
     vars_lowerbound[i] = params.min_v;
     vars_upperbound[i] = params.max_v;
@@ -253,22 +253,22 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
     // Penalize high delta values and going below maximum velocity
     for (unsigned int t = 0; t < N - 1; ++t)
     {
-        fg[0] += params.delta_weight * CppAD::pow(vars[delta_start + t], 2);
+        //fg[0] += params.delta_weight * CppAD::pow(vars[delta_start + t], 2);
         fg[0] += params.v_weight * CppAD::pow(params.max_v - vars[v_start + t] , 2);
     }
 
     // Minimize the value gap between sequential actuations.
-    for (unsigned int t = 0; t < N - 2; ++t)
+    /*for (unsigned int t = 0; t < N - 2; ++t)
     {
         fg[0] += params.diff_delta_weight * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
         fg[0] += params.diff_v_weight * CppAD::pow((vars[v_start + t + 1] - vars[v_start + t])/params.delta_time, 2);
-    }
+    }*/
 
     // Make cornering safer
-    for (unsigned int t = 0; t < N - 1; ++t)
+    /*for (unsigned int t = 0; t < N - 1; ++t)
     {
         fg[0] += params.cornering_safety_weight * CppAD::pow(vars[v_start + t] * vars[v_start + t] * vars[delta_start + t], 2);
-    }
+    }*/
 
     //Optimizer constraints - g(x)
     fg[1 + x_start] = 0;
@@ -305,8 +305,10 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> I = params.moment_of_inertia;
         AD<double> lr = params.lr;
         AD<double> lf = params.lf;
+        AD<double> beta = delta0 * lr/(lf + lr);
+        v0 = v0/CppAD::cos(beta);
+        v1 = v1/CppAD::cos(beta);
         AD<double> at = (v1 - v0)/dt; // tangent acceleration
-        AD<double> beta = CppAD::atan2(CppAD::tan(delta0) * lr, lf + lr);
         AD<double> kappa = CppAD::sin(beta)/lr;
         AD<double> an = (v1*v1/lr)*CppAD::sin(beta);
 
