@@ -14,7 +14,7 @@ class Converter:
         with open(speed_file_path, 'r') as f:
             speed_lookup_table = pd.read_csv(f)
          
-        with open(setpoint_file_path, 'r' as f:
+        with open(setpoint_file_path, 'r') as f:
             setpoint_lookup_table = pd.read_csv(f)
 
         self.f = interpolate.interp1d(angle_lookup_table['delta_measured'], angle_lookup_table['steering_angle'], fill_value='extrapolate', assume_sorted='false')
@@ -48,9 +48,6 @@ if __name__ == '__main__':
     angle_lookup_table = rospy.get_param('~angle_lookup_table', 1)
     speed_lookup_table = rospy.get_param('~speed_lookup_table', 1)
     setpoint_lookup_table = rospy.get_param('~setpoint_lookup_table', 1)
-
-    angle_lookup_table = join(join(dirname(dirname(abspath(__file__))),'data'), angle_lookup_table)
-    speed_lookup_table = join(join(dirname(dirname(abspath(__file__))),'data'), speed_lookup_table)
 
     rospy.loginfo(angle_lookup_table)
     rospy.loginfo(speed_lookup_table)
