@@ -31,10 +31,9 @@ MPC::MPC(Params p)
   cte_start = psi_start + N;
   epsi_start = cte_start + N;
 
-  delta_start = epsi_start + N - 1;
+  delta_start = epsi_start + N;
   v_start = delta_start + N - 1;
 
-  acceleration_start = epsi_start + N - 1;
 }
 
 
@@ -104,7 +103,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   //Heading offset from the desired path
   double epsi = state[4];
   double speed = state[5];
-  std::cout << "spped from solve: " << speed << '\n';
+  std::cout << "speed from solve: " << speed << '\n';
   /*
    * Initiate indexing variables
    */
@@ -112,7 +111,7 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   //Set the number of model variables
   size_t n_vars = STATE_VARS * N + ACTUATORS_VARS * (N - 1);
   //Set the number of constraints
-  size_t n_constraints = STATE_VARS * N + ACCELERATION_VARS * (N - 1);
+  size_t n_constraints = STATE_VARS * N;
 
   //Initial value of the independent variables
   //SHOULD BE 0 besides initial state
@@ -173,20 +172,10 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   // state and bounds on actuators
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
-  for (size_t i = 0; i < epsi_start; ++i)
+  for (size_t i = 0; i < delta_start; ++i)
   {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
-  }
-
-  const double g = 9.8123;
-  double lr = params.lr;
-  double lf = params.lf;
-
-  for(size_t i = acceleration_start; i < acceleration_start; ++i)
-  {
-      constraints_lowerbound[i] = 0;
-      constraints_upperbound[i] = pow(g*params.friction_coefficient , 2);
   }
 
   // Object that computes the cost function f and the constraints g_i
@@ -207,14 +196,16 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
 
   // Object that is used to store the solution
   CppAD::ipopt::solve_result<Dvector> solution;
-
   // Optimize the cost function
+
+  std::cout << "here\n";
   CppAD::ipopt::solve<Dvector, FG_eval>(
     options, vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,
     constraints_upperbound, fg_eval, solution);
+  std::cout << "here2\n";
 
   // Display the cost
-  auto cost = solution.obj_value;
+  auto cost = solution.obj_value; // To jest chyba int
   std::cout << "Cost " << cost << std::endl;
 
   // Return only the first actuator values
@@ -253,22 +244,40 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
     // Penalize high delta values and going below maximum velocity
     for (unsigned int t = 0; t < N - 1; ++t)
     {
-        //fg[0] += params.delta_weight * CppAD::pow(vars[delta_start + t], 2);
+        fg[0] += params.delta_weight * CppAD::pow(vars[delta_start + t], 2);
         fg[0] += params.v_weight * CppAD::pow(params.max_v - vars[v_start + t] , 2);
     }
 
     // Minimize the value gap between sequential actuations.
-    /*for (unsigned int t = 0; t < N - 2; ++t)
+    for (unsigned int t = 0; t < N - 2; ++t)
     {
         fg[0] += params.diff_delta_weight * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
         fg[0] += params.diff_v_weight * CppAD::pow((vars[v_start + t + 1] - vars[v_start + t])/params.delta_time, 2);
-    }*/
+    }
 
     // Make cornering safer
-    /*for (unsigned int t = 0; t < N - 1; ++t)
+
+    AD<double> dt = params.delta_time;
+    AD<double> lr = params.lr;
+    AD<double> lf = params.lf;
+    AD<double> mu = params.friction_coefficient;
+    AD<double> g = 9.8123;
+
+    for (unsigned int t = 1; t < N - 1; ++t)
     {
-        fg[0] += params.cornering_safety_weight * CppAD::pow(vars[v_start + t] * vars[v_start + t] * vars[delta_start + t], 2);
-    }*/
+        AD<double> delta0 = vars[delta_start + t - 1];
+        AD<double> v0 = vars[v_start + t - 1];
+        AD<double> v1 = vars[v_start + t];
+        AD<double> beta = delta0 * lr/(lf + lr);
+        AD<double> at = (v1 - v0)/dt; // tangent acceleration
+        AD<double> an = (v1*v1/lr)*beta; // normal acceleration
+        AD<double> x = CppAD::sqrt(an*an + at*at) - g*mu;
+        //fg[0] += params.acceleration_weight * CppAD::exp(x)/(1 + CppAD::exp(x));
+        //fg[0] += params.acceleration_weight * -CppAD::log(g*mu - CppAD::sqrt(an*an + at*at));
+    }
+
+
+
 
     //Optimizer constraints - g(x)
     fg[1 + x_start] = 0;
@@ -276,9 +285,8 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
     fg[1 + psi_start] = 0;
     fg[1 + cte_start] = 0;
     fg[1 + epsi_start] = 0;
-    fg[1 + acceleration_start] = 0;
 
-    for (unsigned int t = 1; t < N; ++t)
+    for (unsigned int t = 1; t < N - 1; ++t)
     {
         // The state at time t_current+1 .
         AD<double> x1 = vars[x_start + t];
@@ -301,19 +309,6 @@ void FG_eval::operator()(ADvector& fg, const ADvector& vars)
         AD<double> f1 = pathCoeffs[0] + pathCoeffs[1] * x1 + pathCoeffs[2] * x1 * x1;
         AD<double> psides1 = CppAD::atan(pathCoeffs[1] + 2 * pathCoeffs[2] * x1);
 
-        AD<double> dt = params.delta_time;
-        AD<double> I = params.moment_of_inertia;
-        AD<double> lr = params.lr;
-        AD<double> lf = params.lf;
-        AD<double> beta = delta0 * lr/(lf + lr);
-        v0 = v0/CppAD::cos(beta);
-        v1 = v1/CppAD::cos(beta);
-        AD<double> at = (v1 - v0)/dt; // tangent acceleration
-        AD<double> kappa = CppAD::sin(beta)/lr;
-        AD<double> an = (v1*v1/lr)*CppAD::sin(beta);
-
-        // Total acceleration
-        fg[1 + acceleration_start + t] = an*an + at*at;
 
         // Model calculations
         fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);

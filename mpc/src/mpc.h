@@ -16,7 +16,6 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float64MultiArray.h"
 #define STATE_VARS 5
-#define ACCELERATION_VARS 1
 #define ACTUATORS_VARS 2
 
 using CppAD::AD;
@@ -35,6 +34,7 @@ struct Params
   // weights for difference in sequential actuations in delta and velocity
   int diff_delta_weight;
   int diff_v_weight;
+  int acceleration_weight;
   // timestep for the internal vehicle model simulation
   double delta_time;
   // absolute value of delta in radians
