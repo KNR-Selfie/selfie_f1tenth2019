@@ -14,6 +14,7 @@ struct Params{
 	double w_eps;
 	double w_v;
 	double w_delta_var;
+	double w_delta;
 	double w_a_var;
 	double sigmoid_k;
 	size_t state_vars;

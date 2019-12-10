@@ -58,6 +58,7 @@ int main(int argc, char** argv)
   pnh.param("w_cte", p.w_cte, 100.0);
   pnh.param("w_eps", p.w_eps, 100.0);
   pnh.param("w_delta_var", p.w_delta_var, 2000.0);
+  pnh.param("w_delta", p.w_delta, 20.0);
   pnh.param("w_v", p.w_v, 100.0);
   pnh.param("w_a_var", p.w_a_var, 100.0);
   pnh.param("v_ref", p.v_ref, 0.5);
