@@ -61,12 +61,9 @@ public:
 
 			AD<double> beta0 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta0));
 			AD<double> beta1 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta1));
-			AD<double> at = a0;
+			AD<double> at = a1;
 			AD<double> an = v1*v1*CppAD::sin(beta1)/p.lr;
 			AD<double> a_max = p.a_max;
-      AD<double> a_diff = p.sigmoid_k * (CppAD::sqrt(at*at + an*an) - a_max);
-			// max acceleration barrier function
-			fg[0] += (a_diff < 0.0) ? 0.0 : p.w_a * CppAD::pow(a_diff, 2);
 			// course trajectory error
 			AD<double> y_trajectory = p.trajectory_coefficients[0]
 															+ x1*p.trajectory_coefficients[1]
@@ -74,6 +71,9 @@ public:
 			AD<double> psi_trajectory = p.trajectory_coefficients[1]
 																+ 2.0*x1*p.trajectory_coefficients[2];
 
+			// acceleration barrier function
+			fg[0] += p.w_a * CppAD::exp(p.sigmoid_k*(CppAD::pow(at, 2) + CppAD::pow(an, 2) - CppAD::pow(a_max, 2)));
+			// course trajectory error
 			fg[0] += p.w_cte * CppAD::pow(y1 - y_trajectory, 2);
 			// course heading error
 			fg[0] += p.w_eps * CppAD::pow(psi1 - psi_trajectory, 2);
@@ -98,7 +98,8 @@ public:
 
 
 Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lower,
-				 std::vector<double> state_upper, std::vector<double> steering_lower, std::vector<double> steering_upper, Params p){
+				 std::vector<double> state_upper, std::vector<double> steering_lower,
+				 std::vector<double> steering_upper, Params p){
 	typedef CPPAD_TESTVECTOR( double ) Dvector;
 
 	// number of independent state and steering variables (domain dimension for f and g)
@@ -162,6 +163,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 		options, xi, xi_lower, xi_upper, g_lower, g_upper, fg_eval, solution
 	);
 
+	// ============== DEBUG =====================
 	std::cout << "cost: " << solution.obj_value << "\n";
 
 	for(int i = 0; i < steering_start; ++i){
@@ -173,7 +175,15 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
     if(i % p.steering_vars == 0) std::cout << "\n";
 		std::cout << solution.x[i] << " ";
 	}
+	std::cout << "\n";
+	double delta1 = solution.x[steering_start + p.steering_vars];
+	double beta1 = atan(p.lr/(p.lf + p.lr) * tan(delta1));
+	double at = solution.x[steering_start + p.steering_vars + 1];
+	double v1 = solution.x[p.state_vars + p.v];
+	double an = v1*v1*sin(beta1)/p.lr;
 
+	std::cout << "total acceleration: " << sqrt(an*an + at*at) << "\n";
+	// ============== DEBUG =====================
   Controls controls;
 
   controls.delta = solution.x[steering_start];
