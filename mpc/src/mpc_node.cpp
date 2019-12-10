@@ -47,38 +47,34 @@ int main(int argc, char** argv)
 
 
   Params p;
+  double max_steering_angle;
+  double v_max, v_min;
   int loop_rate;
-  double max_vel;
 
-  pnh.param("prediction_horizon", p.prediction_horizon, 10);
-  pnh.param("delta_time", p.delta_time, 0.2);
   pnh.param("loop_rate", loop_rate, 10);
-  pnh.param("max_mod_delta", p.max_mod_delta, 0.44);
-  pnh.param("cte_weight", p.cte_weight, 100);
-  pnh.param("epsi_weight", p.epsi_weight, 100);
-  pnh.param("delta_weight", p.delta_weight, 2000);
-  pnh.param("v_weight", p.v_weight, 100);
-  pnh.param("diff_delta_weight", p.diff_delta_weight, 100);
-  pnh.param("diff_v_weight", p.diff_v_weight, 100);
-  pnh.param("ref_v", p.ref_v, 4.0);
-  pnh.param("max_v", p.max_v, 0.5);
-  pnh.param("min_v", p.min_v, -0.1);
-  pnh.param("cornering_safety_weight", p.cornering_safety_weight, 0.0);
-  pnh.param("acceleration_weight", p.acceleration_weight, 0);
-  pnh.param("friction_coefficient", p.friction_coefficient, 0.8);
-  pnh.param("moment_of_inertia", p.moment_of_inertia, 15.0);
-  pnh.param("gamma", p.gamma, 0.5);
-  pnh.param("mass", p.mass, 20.0);
+  pnh.param("prediction_horizon", p.prediction_horizon, 10);
+  pnh.param("dt", p.dt, 0.2);
+  pnh.param("max_steering_angle", max_steering_angle, 0.44);
+  pnh.param("w_cte", p.w_cte, 100.0);
+  pnh.param("w_eps", p.w_eps, 100.0);
+  pnh.param("w_delta_var", p.w_delta_var, 2000.0);
+  pnh.param("w_v", p.w_v, 100.0);
+  pnh.param("w_a_var", p.w_a_var, 100.0);
+  pnh.param("v_ref", p.v_ref, 0.5);
+  pnh.param("v_max", v_max, 0.5);
+  pnh.param("v_min", v_min, -0.1);
+  pnh.param("a_max", p.a_max, 0.8);
+  pnh.param("sigmoid_k", p.sigmoid_k, 1.0);
   pnh.param("lf", p.lf, 0.25);
   pnh.param("lr", p.lr, 0.25);
 
+  // x, y, psi, v
+  p.state_vars = 4;
+  // a, delta
+  p.steering_vars = 2;
+  p.constraint_functions = 4;
 
-
-  MPC mpc(p);
   ros::Rate rate(loop_rate);
-  double x, y, orientation;
-  Controls controls;
-  int last_time;
 
   while(ros::ok())
   {
@@ -107,23 +103,39 @@ int main(int argc, char** argv)
       x(i) = path_points_base_link[i].point.x;
       y(i) = path_points_base_link[i].point.y;
     }
-    VectorXd pathCoeffs;
-    pathCoeffs = polyfit(x, y, POLYFIT_ORDER);
+    VectorXd trajectory_coefficients_result;
+    trajectory_coefficients_result = polyfit(x, y, POLYFIT_ORDER);
+    std::vector <double> trajectory_coefficients;
 
-    VectorXd state(STATE_VARS + 1);
-    state(0) = 0; //x
-    state(1) = 0; //y
+    trajectory_coefficients.push_back(trajectory_coefficients_result[0]);
+    trajectory_coefficients.push_back(trajectory_coefficients_result[1]);
+    trajectory_coefficients.push_back(trajectory_coefficients_result[2]);
+
+    p.trajectory_coefficients = trajectory_coefficients;
+
+    std::vector<double> state(p.state_vars);
+    state[0] = 0; //x
+    state[1] = 0; //y
     tf::Quaternion base_link_rot_qaternion = transform.getRotation();
     tfScalar yaw, pitch, roll;
     tf::Matrix3x3 rotation_mat(base_link_rot_qaternion);
     rotation_mat.getRPY(roll, pitch, yaw, 1);
-    state(2) = 0; //psi
-    state(3) = pathCoeffs[0];
-    state(4) = CppAD::atan(pathCoeffs[1]);
-    state(5) = speed;
+    state[2] = 0; //psi
+    state[3] = speed;
 
+    MPC mpc;
+    Controls controls;
+
+    std::vector<double> state_lower{-1e9, -1e9, -1e9, v_min};
+
+    std::vector<double> state_upper{1e9, 1e9, 1e9, v_max};
+
+    std::vector<double> steering_lower{-max_steering_angle, -0.2};
+
+    std::vector<double> steering_upper{max_steering_angle, 2};
     clock_t time = clock();
-    controls = mpc.getControls(pathCoeffs, state);
+    controls = mpc.mpc_solve(state, state_lower, state_upper, steering_lower,
+                             steering_upper, p);
     time = clock() - time;
     std::cout << "mpc_exec_time: " << (double)time/CLOCKS_PER_SEC << std::endl;
 
@@ -136,7 +148,7 @@ int main(int argc, char** argv)
     drive_msg.header.stamp.sec = ros::Time::now().sec;
     drive_msg.header.stamp.nsec = ros::Time::now().nsec;
     drive_msg.drive.steering_angle = controls.delta;
-    drive_msg.drive.speed = controls.velocity;
+    drive_msg.drive.acceleration = controls.velocity;
 
 
     target_speed_msg.data = controls.velocity;
@@ -152,9 +164,8 @@ int main(int argc, char** argv)
 
     ros::spinOnce();
 
-    std::cout << "speed: " << speed << std::endl;
-
     rate.sleep();
+    std::cout << "speed: " << speed << std::endl;
   }
   return 0;
 }

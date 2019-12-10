@@ -1,188 +1,147 @@
+#define HAVE_STDDEF_H
+#include <cppad/cppad.hpp>
+#include <cppad/ipopt/solve.hpp>
+#undef HAVE_STDDEF_H
+#include <iostream>
+#include <string>
+#include <vector>
+#include "Eigen-3.3.7/Eigen/Core"
+#include <algorithm>
+#include <cmath>
+#include <ros/ros.h>
+#include <nav_msgs/Path.h>
+#include "std_msgs/Float64.h"
+#include "std_msgs/Float64MultiArray.h"
 #include "mpc.h"
-#include <cassert>
-//Parameters
-Params params;
-// Position on the map
-size_t x_start;
-size_t y_start;
-// Orientation with respect to the x(?) axis
-size_t psi_start;
-// Velocity with respect to map
-size_t v_start;
-// Path position offset
-size_t cte_start;
-// Path heading offset
-size_t epsi_start;
-// Variables for actuators
-// Steering angle
-size_t delta_start;
-// Axis Forces, treated as constraint functions
-size_t acceleration_start;
+
+using CppAD::AD;
+using Eigen::VectorXd;
 
 
+class FG_eval {
 
-MPC::MPC(Params p)
-{
-  params = p;
-  size_t N = params.prediction_horizon;
-  x_start = 0;
-  y_start = x_start + N;
-  psi_start = y_start + N;
-  cte_start = psi_start + N;
-  epsi_start = cte_start + N;
+	Params p;
 
-  delta_start = epsi_start + N;
-  v_start = delta_start + N - 1;
+public:
+	typedef CPPAD_TESTVECTOR( AD<double> ) ADvector;
 
-}
+	FG_eval(Params p){
+		this->p = p;
+	}
+
+	void operator()(ADvector& fg, const ADvector& xi){
+
+		size_t N = p.prediction_horizon;
+
+		for(int t = 0; t < N; ++t){
+
+			// index of steering variables
+			size_t iu0 = p.steering_vars * t;
+			size_t iu1 = p.steering_vars * (t + 1);
+			// index of state variables
+			size_t is0 = p.state_vars * t;
+			size_t is1 = p.state_vars * (t + 1);
 
 
-Controls MPC::getControls(Eigen::VectorXd pathCoeffs, const VectorXd &state)
-{
-  //Get the optimal controls
-  FG_eval fg_eval(pathCoeffs);
-  std::vector<double> solution;
-  solution = Solve(state, pathCoeffs);
+			AD<double> x0 = xi[p.x + is0];
+			AD<double> y0 = xi[p.y + is0];
+			AD<double> psi0 = xi[p.psi + is0];
+			AD<double> v0 = xi[p.v + is0];
+			AD<double> a0 = xi[p.a + iu0];
+			AD<double> delta0 = xi[p.delta + iu0];
 
-  //Return the controls
-  Controls ret;
-  ret.delta = solution[0];
-  ret.velocity = solution[1];
+			AD<double> x1 = xi[p.x + is1];
+			AD<double> y1 = xi[p.y + is1];
+			AD<double> psi1 = xi[p.psi + is1];
+			AD<double> v1 = xi[p.v + is1];
+			AD<double> a1 = xi[p.a + iu1];
+			AD<double> delta1 = xi[p.delta + iu1];
 
-  size_t N = params.prediction_horizon;
-  assert(N > 0);
-  //Return predicted path
-  std::vector <geometry_msgs::PoseStamped> poses(N);
-  std::vector <geometry_msgs::PoseStamped> polynomial_poses(N);
+			AD<double> v_avg = (v0 + v1)/2.0;
 
-  for (int i = 0; i < N; i++)
-  {
-    poses[i].header.stamp = ros::Time::now();
-    poses[i].header.frame_id = "base_link";
-    poses[i].pose.position.x = solution[2 * i + 2];
-    poses[i].pose.position.y = solution[2 * i + 3];
+			AD<double> beta0 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta0));
+			AD<double> beta1 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta1));
+			AD<double> at = a0;
+			AD<double> an = v1*v1*CppAD::sin(beta1)/p.lr;
+			AD<double> a_max = p.a_max;
+      AD<double> a_diff = p.sigmoid_k * (CppAD::sqrt(at*at + an*an) - a_max);
+			// max acceleration barrier function
+			//fg[0] += p.w_a * (a_diff/CppAD::sqrt(1.0 + 4.0*a_diff*a_diff) + 1.0);
+			// course trajectory error
+			AD<double> y_trajectory = p.trajectory_coefficients[0]
+															+ x1*p.trajectory_coefficients[1]
+															+ x1*x1*p.trajectory_coefficients[2];
+			AD<double> psi_trajectory = p.trajectory_coefficients[1]
+																+ 2.0*x1*p.trajectory_coefficients[2];
+
+			fg[0] += p.w_cte * CppAD::pow(y1 - y_trajectory, 2);
+			// course heading error
+			fg[0] += p.w_eps * CppAD::pow(psi1 - psi_trajectory, 2);
+			// velocity error
+			fg[0] += p.w_v * CppAD::pow(v_avg - p.v_ref, 2);
+			// sequential actuations
+			fg[0] += p.w_delta_var * CppAD::pow(delta1 - delta0, 2);
+			fg[0] += p.w_a_var * CppAD::pow(a1 - a0, 2);
+
+			fg[1 + p.constraint_functions * t] = x1 - (x0 + v_avg * p.dt * CppAD::cos(psi0 + beta0));
+			fg[2 + p.constraint_functions * t] = y1 - (y0 + v_avg * p.dt * CppAD::sin(psi0 + beta0));
+			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * CppAD::sin(beta0)/p.lr);
+			fg[4 + p.constraint_functions * t] = v1 - (v0 + a0 * p.dt);
+
+		}
+
+		return;
+	}
+};
+
+
+Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lower,
+				 std::vector<double> state_upper, std::vector<double> steering_lower, std::vector<double> steering_upper, Params p){
+	typedef CPPAD_TESTVECTOR( double ) Dvector;
+
+	// number of independent state and steering variables (domain dimension for f and g)
+	size_t number_of_variables = p.state_vars * (p.prediction_horizon + 1)
+	                           + p.steering_vars * (p.prediction_horizon + 1);
+	// number of constraints (range dimension for g)
+	size_t number_of_constraints = p.constraint_functions * p.prediction_horizon;
+  size_t steering_start = p.state_vars*(p.prediction_horizon + 1);
+	// initial value of the independent variables
+	Dvector xi(number_of_variables); for(int i = 0; i < xi.size(); ++i) xi[i] = 0;
+
+	// lower and upper limits for independent variables
+	Dvector xi_lower(number_of_variables), xi_upper(number_of_variables);
+
+	// lower and upper limits for state variables
+  for(int i = 0; i < p.state_vars; ++i){
+    xi_lower[i] = state0[i]; xi_upper[i] = state0[i];
   }
 
-  double x = 0.1;
-
-  for (int i = 0; i < N; i++)
-  {
-    polynomial_poses[i].header.stamp = ros::Time::now();
-    polynomial_poses[i].header.frame_id = "base_link";
-    x += x;
-    polynomial_poses[i].pose.position.x = x;
-    polynomial_poses[i].pose.position.y = pathCoeffs[0] + pathCoeffs[1] * x + pathCoeffs[2]* x * x;
-  }
-
-  std::swap(ret.polynomial_path.poses, polynomial_poses);
-  ret.polynomial_path.header.frame_id = "base_link";
-  ret.polynomial_path.header.stamp = ros::Time::now();
-
-  std::swap(ret.predicted_path.poses, poses);
-  ret.predicted_path.header.frame_id = "base_link";
-  ret.predicted_path.header.stamp = ros::Time::now();
-
-  return ret;
-
-}
+	for(int i = 0; i < p.state_vars; ++i){
+		for(int j = i + p.state_vars; j < steering_start; j += p.state_vars){
+			xi_lower[j] = state_lower[i]; xi_upper[j] = state_upper[i];
+		}
+	}
 
 
-std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
-{
-  typedef CPPAD_TESTVECTOR(double) Dvector;
-  /*
-    Initiate variables describing a state of the car
-  */
-  //Position of the car on the map
-  double x = state[0];
-  double y = state[1];
-  //Angle with respect to the x(?) axis
-  double psi = state[2];
-  //Distance from the desired path
-  double cte = state[3];
-  //Heading offset from the desired path
-  double epsi = state[4];
-  double speed = state[5];
-  std::cout << "speed from solve: " << speed << '\n';
-  /*
-   * Initiate indexing variables
-   */
-  size_t N = params.prediction_horizon;
-  //Set the number of model variables
-  size_t n_vars = STATE_VARS * N + ACTUATORS_VARS * (N - 1);
-  //Set the number of constraints
-  size_t n_constraints = STATE_VARS * N;
+	// lower and upper limits for steering variables
+	for(int i = 0; i < p.steering_vars; ++i){
+		for(int j = i + steering_start; j < xi.size(); j += p.steering_vars){
+			xi_lower[j] = steering_lower[i]; xi_upper[j] = steering_upper[i];
+		}
+	}
 
-  //Initial value of the independent variables
-  //SHOULD BE 0 besides initial state
-  Dvector vars(n_vars);
-  for (size_t i = 0; i < n_vars; ++i)
-  {
-    vars[i] = 0;
-  }
+	// lower and upper limits for g
+	Dvector g_lower(number_of_constraints), g_upper(number_of_constraints);
+	for(int i = 0; i < number_of_constraints; ++i){
+		g_lower[i] = 0; g_upper[i] = 0;
+	}
 
-  Dvector vars_lowerbound(n_vars);
-  Dvector vars_upperbound(n_vars);
+	// object that computes objective and constraints
+	FG_eval fg_eval(p);
 
-  /*
-   * Set lower and upper limits for state variables
-   */
-  for (size_t i = 0; i < delta_start; ++i)
-  {
-    vars_lowerbound[i] = -1.0e19;
-    vars_upperbound[i] = 1.0e19;
-  }
-
-  /*
-   * Set initial state variables
-   */
-  vars_lowerbound[x_start] = x;
-  vars_upperbound[x_start] = x;
-  vars_lowerbound[y_start] = y;
-  vars_upperbound[y_start] = y;
-  vars_lowerbound[psi_start] = psi;
-  vars_upperbound[psi_start] = psi;
-  vars_lowerbound[cte_start] = cte;
-  vars_upperbound[cte_start] = cte;
-  vars_lowerbound[epsi_start] = epsi;
-  vars_upperbound[epsi_start] = epsi;
-  vars_lowerbound[v_start] = speed;
-  vars_upperbound[v_start] = speed;
-
-  // The upper and lower limits of delta are set to -25 and 25
-  // degrees in radians
-  for (size_t i = delta_start; i < v_start; ++i)
-  {
-    vars_lowerbound[i] = -1 * params.max_mod_delta;
-    vars_upperbound[i] = params.max_mod_delta;
-  }
-
-  //Velocity upper and lower limits
-  for (size_t i = v_start + 1; i < n_vars; ++i)
-  {
-    vars_lowerbound[i] = params.min_v;
-    vars_upperbound[i] = params.max_v;
-  }
-
-  // Lower and upper limits for the constraints.
-  // The constraints are defined as difference between a state variable provided by
-  // the ipopt optimizer and a state variable resulting from the model
-  // equations, so they should be always equal to 0, because we only want to do
-  // calculations for states that can actually happen considering the initial
-  // state and bounds on actuators
-  Dvector constraints_lowerbound(n_constraints);
-  Dvector constraints_upperbound(n_constraints);
-  for (size_t i = 0; i < delta_start; ++i)
-  {
-    constraints_lowerbound[i] = 0;
-    constraints_upperbound[i] = 0;
-  }
-
-  // Object that computes the cost function f and the constraints g_i
-  FG_eval fg_eval(pathCoeffs);
-  //options for IPOPT optimizer
-  std::string options;
-  // Uncomment this if you'd like more print information
+	// options
+	std::string options;
+	// turn off any printing
   options += "Integer print_level  0\n";
   // NOTE: Setting sparse to true allows the solver to take advantage
   //   of sparse routines, this makes the computation MUCH FASTER. If you can
@@ -193,131 +152,58 @@ std::vector<double> Solve(const VectorXd &state, const VectorXd &pathCoeffs)
   // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
   // Change this as you see fit.
   options += "Numeric max_cpu_time          0.5\n";
+	// place to return solution
+	CppAD::ipopt::solve_result<Dvector> solution;
 
-  // Object that is used to store the solution
-  CppAD::ipopt::solve_result<Dvector> solution;
-  // Optimize the cost function
+	// solve the problem
+	CppAD::ipopt::solve<Dvector, FG_eval>(
+		options, xi, xi_lower, xi_upper, g_lower, g_upper, fg_eval, solution
+	);
 
-  std::cout << "here\n";
-  CppAD::ipopt::solve<Dvector, FG_eval>(
-    options, vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,
-    constraints_upperbound, fg_eval, solution);
-  std::cout << "here2\n";
+	for(int i = 0; i < steering_start; ++i){
+    if(i % p.state_vars == 0) std::cout << "\n";
+		std::cout << solution.x[i] << " ";
+	}
+  std::cout << "\n";
+  for(int i = steering_start; i < solution.x.size(); ++i){
+    if(i % p.steering_vars == 0) std::cout << "\n";
+		std::cout << solution.x[i] << " ";
+	}
 
-  // Display the cost
-  auto cost = solution.obj_value; // To jest chyba int
-  std::cout << "Cost " << cost << std::endl;
+  Controls controls;
 
-  // Return only the first actuator values
-  std::vector<double> ret_val;
-  ret_val.push_back(solution.x[delta_start]);
-  ret_val.push_back(solution.x[v_start]);
+  controls.delta = solution.x[steering_start];
+  controls.velocity = solution.x[p.state_vars + p.v];
 
-  for(size_t i = 0; i < N - 1; ++i) std::cout << "delta: " << solution.x[delta_start + i] << " v: " << solution.x[v_start + i] << std::endl;
+  std::vector <geometry_msgs::PoseStamped> poses(p.prediction_horizon);
+  std::vector <geometry_msgs::PoseStamped> polynomial_poses(p.prediction_horizon);
 
-  // Also return the optimal positions to display predicted path in rviz
-  for (size_t i = 0; i < N; ++i)
-  {
-    ret_val.push_back(solution.x[x_start + i]);
-    ret_val.push_back(solution.x[y_start + i]);
+  for(int i = p.state_vars; i < steering_start; i += p.state_vars){
+    int j = i/p.state_vars - 1;
+    poses[j].header.stamp = ros::Time::now();
+    poses[j].header.frame_id = "base_link";
+    poses[j].pose.position.x = solution.x[i + p.x];
+    poses[j].pose.position.y = solution.x[i + p.y];
   }
 
-  return ret_val;
-}
+  for (int i = 0; i < p.prediction_horizon; i++)
+  {
+    polynomial_poses[i].header.stamp = ros::Time::now();
+    polynomial_poses[i].header.frame_id = "base_link";
+    polynomial_poses[i].pose.position.x = i * 0.1;
+    polynomial_poses[i].pose.position.y = p.trajectory_coefficients[0]
+                                        + p.trajectory_coefficients[1] * (i * 0.1)
+                                        + p.trajectory_coefficients[2] * (i * i * 0.01);
+  }
 
-FG_eval::FG_eval (VectorXd pathCoeffs)
-{
-    this->pathCoeffs = pathCoeffs;
-}
+  std::swap(controls.polynomial_path.poses, polynomial_poses);
+  controls.polynomial_path.header.frame_id = "base_link";
+  controls.polynomial_path.header.stamp = ros::Time::now();
 
-void FG_eval::operator()(ADvector& fg, const ADvector& vars)
-{
-    fg[0] = 0;
-    size_t N = params.prediction_horizon;
-    // The part of the cost based on the reference state
-    for (unsigned int t = 0; t < N; ++t)
-    {
-        fg[0] += params.cte_weight * CppAD::pow(vars[cte_start + t], 2);
-        fg[0] += params.epsi_weight * CppAD::pow(CppAD::sin(vars[epsi_start + t]), 2);
-    }
+  std::swap(controls.predicted_path.poses, poses);
+  controls.predicted_path.header.frame_id = "base_link";
+  controls.predicted_path.header.stamp = ros::Time::now();
 
-    // Penalize high delta values and going below maximum velocity
-    for (unsigned int t = 0; t < N - 1; ++t)
-    {
-        fg[0] += params.delta_weight * CppAD::pow(vars[delta_start + t], 2);
-        fg[0] += params.v_weight * CppAD::pow(params.max_v - vars[v_start + t] , 2);
-    }
-
-    // Minimize the value gap between sequential actuations.
-    for (unsigned int t = 0; t < N - 2; ++t)
-    {
-        fg[0] += params.diff_delta_weight * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-        fg[0] += params.diff_v_weight * CppAD::pow((vars[v_start + t + 1] - vars[v_start + t])/params.delta_time, 2);
-    }
-
-    // Make cornering safer
-
-    AD<double> dt = params.delta_time;
-    AD<double> lr = params.lr;
-    AD<double> lf = params.lf;
-    AD<double> mu = params.friction_coefficient;
-    AD<double> g = 9.8123;
-
-    for (unsigned int t = 1; t < N - 1; ++t)
-    {
-        AD<double> delta0 = vars[delta_start + t - 1];
-        AD<double> v0 = vars[v_start + t - 1];
-        AD<double> v1 = vars[v_start + t];
-        AD<double> beta = delta0 * lr/(lf + lr);
-        AD<double> at = (v1 - v0)/dt; // tangent acceleration
-        AD<double> an = (v1*v1/lr)*beta; // normal acceleration
-        AD<double> x = CppAD::sqrt(an*an + at*at) - g*mu;
-        //fg[0] += params.acceleration_weight * CppAD::exp(x)/(1 + CppAD::exp(x));
-        //fg[0] += params.acceleration_weight * -CppAD::log(g*mu - CppAD::sqrt(an*an + at*at));
-    }
-
-
-
-
-    //Optimizer constraints - g(x)
-    fg[1 + x_start] = 0;
-    fg[1 + y_start] = 0;
-    fg[1 + psi_start] = 0;
-    fg[1 + cte_start] = 0;
-    fg[1 + epsi_start] = 0;
-
-    for (unsigned int t = 1; t < N - 1; ++t)
-    {
-        // The state at time t_current+1 .
-        AD<double> x1 = vars[x_start + t];
-        AD<double> y1 = vars[y_start + t];
-        AD<double> psi1 = vars[psi_start + t];
-        AD<double> cte1 = vars[cte_start + t];
-        AD<double> epsi1 = vars[epsi_start + t];
-        AD<double> v1 = vars[v_start + t];
-        // The state at time t_current.
-        AD<double> x0 = vars[x_start + t - 1];
-        AD<double> y0 = vars[y_start + t - 1];
-        AD<double> psi0 = vars[psi_start + t - 1];
-        AD<double> cte0 = vars[cte_start + t - 1];
-        AD<double> epsi0 = vars[epsi_start + t - 1];
-        AD<double> delta0 = vars[delta_start + t - 1];
-        AD<double> v0 = vars[v_start + t - 1];
-
-        AD<double> delta1 = vars[delta_start + t];
-
-        AD<double> f1 = pathCoeffs[0] + pathCoeffs[1] * x1 + pathCoeffs[2] * x1 * x1;
-        AD<double> psides1 = CppAD::atan(pathCoeffs[1] + 2 * pathCoeffs[2] * x1);
-
-
-        // Model calculations
-        fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
-        fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
-        fg[1 + psi_start + t] = psi1 - (psi0 + v0 / (lr + lf) * delta0 * dt);
-        fg[1 + cte_start + t] = cte1 - (f1 - y1);
-        fg[1 + epsi_start + t] = epsi1 - (psides1 - psi1);
-
-    }
-
+  return controls;
 
 }

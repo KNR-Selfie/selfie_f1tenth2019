@@ -15,22 +15,16 @@
 
 	<node pkg="mpc" type="mpc" name="mpc" output="screen">
 			<param name="prediction_horizon" type="int" value="10" />
-			<param name="delta_time" type="double" value="0.12" />
-			<param name="loop_rate" type="int" value="10" />
-			<param name="max_mod_delta" type="double" value="0.44" />
-			<param name="cte_weight" type="int" value="85" />
-			<param name="epsi_weight" type="int" value="40" />
-			<param name="v_weight" type="int" value="150" />
-			<param name="delta_weight" type="int" value="0" />
-			<param name="diff_delta_weight" type="int" value="100" />
-			<param name="diff_v_weight" type="int" value="10" />
-			<param name="max_v" type="double" value="3" />
-			<param name="min_v" type="double" value="-0.2" />
-			<param name="acceleration_weight" type="int" value="40" />
-			<param name="friction_coefficient" type="double" value="0.8" />
-			<param name="moment_of_inertia" type="double" value="20.0" />
-			<param name="gamma" type="double" value="0.5" />
-			<param name="mass" type="double" value="10.0" />
+			<param name="dt" type="double" value="0.2" />
+			<param name="max_steering_angle" type="double" value="0.44" />
+			<param name="w_cte" type="double" value="85.0" />
+			<param name="w_eps" type="double" value="40.0" />
+			<param name="w_v" type="double" value="1500.0" />
+			<param name="w_delta_var" type="double" value="10" />
+			<param name="w_a_var" type="double" value="10.0" />
+			<param name="v_max" type="double" value="3.0" />
+			<param name="v_min" type="double" value="-0.2" />
+			<param name="a_max" type="double" value="5.0" />
 			<param name="lf" type="double" value="0.25" />
 			<param name="lr" type="double" value="0.25" />
 			<remap from="closest_path_points" to="path"/>
