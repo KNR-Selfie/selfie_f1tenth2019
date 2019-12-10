@@ -14,8 +14,9 @@
 	</node >
 
 	<node pkg="mpc" type="mpc" name="mpc" output="screen">
+			<param name="loop_rate" type="int" value="50" />
 			<param name="prediction_horizon" type="int" value="10" />
-			<param name="dt" type="double" value="0.15" />
+			<param name="dt" type="double" value="0.10" />
 			<param name="max_steering_angle" type="double" value="0.44" />
 			<param name="w_cte" type="double" value="80.0" />
 			<param name="w_eps" type="double" value="100.0" />
@@ -23,9 +24,9 @@
 			<param name="w_delta" type="double" value="20.0" />
 			<param name="w_delta_var" type="double" value="100.0" />
 			<param name="w_a_var" type="double" value="20.0" />
-			<param name="v_max" type="double" value="5.0" />
+			<param name="v_max" type="double" value="7.0" />
 			<param name="v_min" type="double" value="-0.2" />
-			<param name="v_ref" type="double" value="3" />
+			<param name="v_ref" type="double" value="5.0" />
 			<param name="a_max" type="double" value="5.0" />
 			<param name="sigmoid_k" type="double" value="4.0" />
 			<param name="lf" type="double" value="0.25" />

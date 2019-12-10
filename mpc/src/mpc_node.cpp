@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   double v_max, v_min;
   int loop_rate;
 
-  pnh.param("loop_rate", loop_rate, 10);
+  pnh.param("loop_rate", loop_rate, 50);
   pnh.param("prediction_horizon", p.prediction_horizon, 10);
   pnh.param("dt", p.dt, 0.2);
   pnh.param("max_steering_angle", max_steering_angle, 0.44);

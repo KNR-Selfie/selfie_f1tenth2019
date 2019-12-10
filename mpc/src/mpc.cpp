@@ -72,7 +72,7 @@ public:
 																+ 2.0*x1*p.trajectory_coefficients[2];
 
 			// acceleration barrier function
-			fg[0] += p.w_a * CppAD::exp(p.sigmoid_k*(CppAD::pow(at, 2) + CppAD::pow(an, 2) - CppAD::pow(a_max, 2)));
+			fg[0] += p.w_a * 1.0/(CppAD::exp(p.sigmoid_k*(-CppAD::pow(at, 2) - CppAD::pow(an, 2) + CppAD::pow(a_max, 2)) + 1));
 			// course trajectory error
 			fg[0] += p.w_cte * CppAD::pow(y1 - y_trajectory, 2);
 			// course heading error
