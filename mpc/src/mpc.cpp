@@ -66,7 +66,7 @@ public:
 			AD<double> a_max = p.a_max;
       AD<double> a_diff = p.sigmoid_k * (CppAD::sqrt(at*at + an*an) - a_max);
 			// max acceleration barrier function
-			//fg[0] += p.w_a * (a_diff/CppAD::sqrt(1.0 + 4.0*a_diff*a_diff) + 1.0);
+			fg[0] += (a_diff < 0.0) ? 0.0 : p.w_a * CppAD::pow(a_diff, 2);
 			// course trajectory error
 			AD<double> y_trajectory = p.trajectory_coefficients[0]
 															+ x1*p.trajectory_coefficients[1]
