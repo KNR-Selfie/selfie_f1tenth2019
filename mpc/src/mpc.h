@@ -29,6 +29,7 @@ struct Params{
 struct Controls{
   double delta;
   double velocity;
+	double acceleration;
   nav_msgs::Path predicted_path;
   nav_msgs::Path polynomial_path;
 };
@@ -40,7 +41,7 @@ class MPC{
 public:
 
   MPC(){
-    
+
   }
   // Main method of the MPC
   Controls mpc_solve(std::vector<double> state0, std::vector<double> state_lower,

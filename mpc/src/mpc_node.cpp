@@ -148,7 +148,8 @@ int main(int argc, char** argv)
     drive_msg.header.stamp.sec = ros::Time::now().sec;
     drive_msg.header.stamp.nsec = ros::Time::now().nsec;
     drive_msg.drive.steering_angle = controls.delta;
-    drive_msg.drive.acceleration = controls.velocity;
+    drive_msg.drive.speed = controls.velocity;
+    drive_msg.drive.acceleration = controls.acceleration;
 
 
     target_speed_msg.data = controls.velocity;
@@ -232,27 +233,3 @@ VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order)
 
   return result;
 }
-
-
-// equations from https://borrelli.me.berkeley.edu/pdfpub/IV_KinematicMPC_jason.pdf
-/*geometry_msgs::Twist getTwist(double v, double delta, double psi, double lf, double lr)
-{
-  cout << "delta: " << delta << endl;
-  double beta = atan( (LT - LF)/LT * tan(delta) );
-  double ang_vel = v/(LT - LF) * sin(beta);
-  double vx = v * cos(psi + beta);
-  double vy = v * sin(psi + beta);
-
-  geometry_msgs::Twist cmd_vel;
-
-  cmd_vel.linear.x = vx;
-  cmd_vel.linear.y = vy;
-  cmd_vel.linear.z = 0;
-
-  cmd_vel.angular.x = 0;
-  cmd_vel.angular.y = 0;
-  cmd_vel.angular.z = ang_vel;
-
-  return cmd_vel;
-}
-*/

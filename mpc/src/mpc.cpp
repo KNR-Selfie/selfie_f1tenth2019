@@ -31,13 +31,13 @@ public:
 
 	void operator()(ADvector& fg, const ADvector& xi){
 
-		size_t N = p.prediction_horizon;
+		size_t steering_start = p.state_vars * (p.prediction_horizon + 1);
 
-		for(int t = 0; t < N; ++t){
+		for(int t = 0; t < p.prediction_horizon; ++t){
 
 			// index of steering variables
-			size_t iu0 = p.steering_vars * t;
-			size_t iu1 = p.steering_vars * (t + 1);
+			size_t iu0 = steering_start + p.steering_vars * t;
+			size_t iu1 = steering_start + p.steering_vars * (t + 1);
 			// index of state variables
 			size_t is0 = p.state_vars * t;
 			size_t is1 = p.state_vars * (t + 1);
@@ -57,7 +57,7 @@ public:
 			AD<double> a1 = xi[p.a + iu1];
 			AD<double> delta1 = xi[p.delta + iu1];
 
-			AD<double> v_avg = (v0 + v1)/2.0;
+			AD<double> v_avg = v0 + 0.5*a0*p.dt;
 
 			AD<double> beta0 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta0));
 			AD<double> beta1 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta1));
@@ -160,6 +160,8 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 		options, xi, xi_lower, xi_upper, g_lower, g_upper, fg_eval, solution
 	);
 
+	std::cout << "cost: " << solution.obj_value << "\n";
+
 	for(int i = 0; i < steering_start; ++i){
     if(i % p.state_vars == 0) std::cout << "\n";
 		std::cout << solution.x[i] << " ";
@@ -174,6 +176,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 
   controls.delta = solution.x[steering_start];
   controls.velocity = solution.x[p.state_vars + p.v];
+	controls.acceleration = solution.x[steering_start + p.a];
 
   std::vector <geometry_msgs::PoseStamped> poses(p.prediction_horizon);
   std::vector <geometry_msgs::PoseStamped> polynomial_poses(p.prediction_horizon);
