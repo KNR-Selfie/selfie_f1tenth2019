@@ -21,13 +21,13 @@
 			<param name="w_cte" type="double" value="80.0" />
 			<param name="w_eps" type="double" value="100.0" />
 			<param name="w_v" type="double" value="10.0" />
-			<param name="w_delta" type="double" value="20.0" />
+			<param name="w_delta" type="double" value="40.0" />
 			<param name="w_delta_var" type="double" value="100.0" />
 			<param name="w_a_var" type="double" value="20.0" />
-			<param name="w_a" type="double" value="200.0" />
+			<param name="w_a" type="double" value="40.0" />
 			<param name="v_max" type="double" value="7.0" />
 			<param name="v_min" type="double" value="-0.2" />
-			<param name="v_ref" type="double" value="4.0" />
+			<param name="v_ref" type="double" value="3.0" />
 			<param name="a_max" type="double" value="4.0" />
 			<param name="sigmoid_k" type="double" value="10.0" />
 			<param name="lf" type="double" value="0.25" />
