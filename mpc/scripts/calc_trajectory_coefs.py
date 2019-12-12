@@ -16,7 +16,7 @@ from std_msgs.msg import Float64
 MAP_FRAME = 'skidpad'
 VEHICLE_FRAME = 'base_link'
 
-PUBLISH_RATE = 20
+PUBLISH_RATE = 40
 
 path = None
 

@@ -71,11 +71,13 @@ public:
 
 			AD<double> a_total2 = CppAD::pow(at, 2) + CppAD::pow(an, 2);
 			AD<double> a_max2 = CppAD::pow(a_max, 2);
+            AD<double> k = p.sigmoid_k;
+            AD<double> w_a = p.w_a;
 			// acceleration barrier function
-			fg[0] += 1.0/(CppAD::exp(-p.sigmoid_k*(-a_max2 - a_total2)) + 1)
-						 * (-a_max2 - a_total2 + p.w_a)
-						 + 1.0/(CppAD::exp(-p.sigmoid_k*(a_total2 - a_max2)) + 1)
-						 * (a_total2 - a_max2 + p.w_a);
+			/*fg[0] += 1.0/(CppAD::exp(-k*(-a_max2 - a_total2)) + 1)
+						 * (-a_max2 - a_total2 + w_a)
+						 + 1.0/(CppAD::exp(-k*(a_total2 - a_max2)) + 1)
+						 * (a_total2 - a_max2 + w_a);*/
 			// course trajectory error
 			fg[0] += p.w_cte * CppAD::pow(y1 - y_trajectory, 2);
 			// course heading error
