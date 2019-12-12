@@ -3,9 +3,9 @@
 #include <cppad/ipopt/solve.hpp>
 #undef HAVE_STDDEF_H
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
-#include "Eigen-3.3.7/Eigen/Core"
 #include <algorithm>
 #include <cmath>
 #include <ros/ros.h>
@@ -15,8 +15,6 @@
 #include "mpc.h"
 
 using CppAD::AD;
-using Eigen::VectorXd;
-
 
 class FG_eval {
 
@@ -65,14 +63,19 @@ public:
 			AD<double> an = v1*v1*CppAD::sin(beta1)/p.lr;
 			AD<double> a_max = p.a_max;
 			// course trajectory error
-			AD<double> y_trajectory = p.trajectory_coefficients[0]
-															+ x1*p.trajectory_coefficients[1]
-															+ x1*x1*p.trajectory_coefficients[2];
-			AD<double> psi_trajectory = p.trajectory_coefficients[1]
-																+ 2.0*x1*p.trajectory_coefficients[2];
+			AD<double> y_trajectory = p.trajectory_coefs[0]
+															+ x1*p.trajectory_coefs[1]
+															+ x1*x1*p.trajectory_coefs[2];
+			AD<double> psi_trajectory = p.trajectory_coefs[1]
+																+ 2.0*x1*p.trajectory_coefs[2];
 
+			AD<double> a_total2 = CppAD::pow(at, 2) + CppAD::pow(an, 2);
+			AD<double> a_max2 = CppAD::pow(a_max, 2);
 			// acceleration barrier function
-			fg[0] += p.w_a * 1.0/(CppAD::exp(p.sigmoid_k*(-CppAD::pow(at, 2) - CppAD::pow(an, 2) + CppAD::pow(a_max, 2)) + 1));
+			fg[0] += 1.0/(CppAD::exp(-p.sigmoid_k*(-a_max2 - a_total2)) + 1)
+						 * (-a_max2 - a_total2 + p.w_a)
+						 + 1.0/(CppAD::exp(-p.sigmoid_k*(a_total2 - a_max2)) + 1)
+						 * (a_total2 - a_max2 + p.w_a);
 			// course trajectory error
 			fg[0] += p.w_cte * CppAD::pow(y1 - y_trajectory, 2);
 			// course heading error
@@ -181,8 +184,14 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 	double at = solution.x[steering_start + p.steering_vars + 1];
 	double v1 = solution.x[p.state_vars + p.v];
 	double an = v1*v1*sin(beta1)/p.lr;
-
+	double a_tot = sqrt(an*an + at*at);
 	std::cout << "total acceleration: " << sqrt(an*an + at*at) << "\n";
+	std::cout << "coefs: " <<  p.trajectory_coefs[2] << " "
+						<< p.trajectory_coefs[1] << " "
+						<< p.trajectory_coefs[0] << "\n";
+	std::ofstream file;
+	file.open("~/cost-acceleration.csv", std::fstream::out | std::fstream::app);
+	file << a_tot << "," << solution.obj_value << "\n";
 	// ============== DEBUG =====================
   Controls controls;
 
@@ -205,10 +214,10 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
   {
     polynomial_poses[i].header.stamp = ros::Time::now();
     polynomial_poses[i].header.frame_id = "base_link";
-    polynomial_poses[i].pose.position.x = i * 0.1;
-    polynomial_poses[i].pose.position.y = p.trajectory_coefficients[0]
-                                        + p.trajectory_coefficients[1] * (i * 0.1)
-                                        + p.trajectory_coefficients[2] * (i * i * 0.01);
+    polynomial_poses[i].pose.position.x = i;
+    polynomial_poses[i].pose.position.y = p.trajectory_coefs[0]
+                                        + p.trajectory_coefs[1] * (i)
+                                        + p.trajectory_coefs[2] * (i * i);
   }
 
   std::swap(controls.polynomial_path.poses, polynomial_poses);

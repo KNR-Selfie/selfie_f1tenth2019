@@ -8,7 +8,7 @@ struct Params{
 	double v_ref;
 	double a_max;
 	// polynomial = trajectory_coefficients[i]*x^i
-	std::vector<double> trajectory_coefficients;
+	std::vector<double> trajectory_coefs;
 	double w_a;
 	double w_cte;
 	double w_eps;
