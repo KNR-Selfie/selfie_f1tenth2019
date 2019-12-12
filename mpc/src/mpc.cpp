@@ -68,7 +68,8 @@ public:
 			AD<double> an = v1*v1*CppAD::sin(beta1)/p.lr;
 			AD<double> a_max = p.a_max;
 			// course trajectory error
-			AD<double> y_trajectory = CppAD::Value((*spline)(x1));
+			AD<double> y_trajectory = (*spline)(x1);
+
 
       //TODO: derivative of p.spline
 			AD<double> psi_trajectory = psi1;
@@ -100,7 +101,6 @@ public:
 			fg[4 + p.constraint_functions * t] = v1 - (v0 + a0 * p.dt);
 
 		}
-
 		return;
 	}
 };
@@ -111,14 +111,12 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 				 std::vector<double> steering_upper, Params p){
 	typedef CPPAD_TESTVECTOR( double ) Dvector;
 
-  cout<<"X"<<endl;
 	if(p.newPoints)
 	{
       if(spline != nullptr)
 			    delete spline;
 			spline = new CppAD::spline(p.pts_x, p.pts_y);
 	}
-	cout<<"A"<<endl;
 
 	// number of independent state and steering variables (domain dimension for f and g)
 	size_t number_of_variables = p.state_vars * (p.prediction_horizon + 1)
@@ -131,6 +129,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 
 	// lower and upper limits for independent variables
 	Dvector xi_lower(number_of_variables), xi_upper(number_of_variables);
+
 
 	// lower and upper limits for state variables
   for(int i = 0; i < p.state_vars; ++i){
@@ -156,7 +155,6 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 	for(int i = 0; i < number_of_constraints; ++i){
 		g_lower[i] = 0; g_upper[i] = 0;
 	}
-
 	// object that computes objective and constraints
 	FG_eval fg_eval(p);
 
@@ -180,9 +178,8 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 	CppAD::ipopt::solve<Dvector, FG_eval>(
 		options, xi, xi_lower, xi_upper, g_lower, g_upper, fg_eval, solution
 	);
-
 	// ============== DEBUG =====================
-	std::cout << "cost: " << solution.obj_value << "\n";
+	/*std::cout << "cost: " << solution.obj_value << "\n";
 
 	for(int i = 0; i < steering_start; ++i){
     if(i % p.state_vars == 0) std::cout << "\n";
@@ -204,7 +201,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 
 	std::ofstream file;
 	file.open("~/cost-acceleration.csv", std::fstream::out | std::fstream::app);
-	file << a_tot << "," << solution.obj_value << "\n";
+	file << a_tot << "," << solution.obj_value << "\n";*/
 	// ============== DEBUG =====================
   Controls controls;
 
