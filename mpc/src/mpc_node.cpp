@@ -111,7 +111,7 @@ int main(int argc, char** argv)
       {
         geometry_msgs::PointStamped point;
         listener.transformPoint("/base_link", path_points[i], point);
-	cout <<"x: "<< point.point.x << " y:   " << point.point.y << endl;
+	      cout << "x: "<< point.point.x << " y:   " << point.point.y << endl;
         if(point.point.x <= prev)
           break;
         prev = point.point.x;
@@ -120,6 +120,7 @@ int main(int argc, char** argv)
       }
       p.newPoints = true;
     }
+    cout << endl;
     clock_t time = clock();
     controls = mpc.mpc_solve(state, state_lower, state_upper, steering_lower,
                              steering_upper, p);
