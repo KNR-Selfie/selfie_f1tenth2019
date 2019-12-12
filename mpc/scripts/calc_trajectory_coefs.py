@@ -58,8 +58,6 @@ while not rospy.is_shutdown():
         coefs.data = np.polyfit(x, y, deg=2)
         coef_pub.publish(coefs)
 
-    except (tf2.LookupException,
-            tf2.ConnectivityException,
-            tf2.ExtrapolationException):
+    except (tf.LookupException, tf.ConnectivityException):
         rospy.logwarn('Transform lookup failed')
     rate.sleep()
