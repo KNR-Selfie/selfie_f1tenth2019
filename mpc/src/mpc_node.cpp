@@ -83,7 +83,7 @@ int main(int argc, char** argv)
       continue;
     }
 
-    listener.lookupTransform("/skidpad", "/base_link", ros::Time(0), transform);
+    listener.lookupTransform("/map", "/base_link", ros::Time(0), transform);
 
     std::vector<double> state(p.state_vars);
     state[0] = 0; //x
