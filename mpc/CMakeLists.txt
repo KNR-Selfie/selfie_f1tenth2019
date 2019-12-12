@@ -138,7 +138,8 @@ include_directories( ${catkin_INCLUDE_DIRS} include )
 add_executable(${PROJECT_NAME} src/mpc_node.cpp src/mpc.cpp )
 target_link_libraries(${PROJECT_NAME} ipopt ${catkin_LIBRARIES})
 
-
+add_executable(cppad_test src/cppad_test.cpp)
+target_link_libraries(cppad_test ${catkin_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
