@@ -12,7 +12,7 @@
 			<param name="~skipad/b" type="double" value="5.0"/>
 			<param name="~path/start" type="double" value="-1.0"/>
 			<param name="~path/stop" type="double" value="5.0"/>
-			<param name="~path/step" type="double" value="0.25"/>
+			<param name="~path/step" type="double" value="0.5"/>
 	</node >
 
 	<node pkg="mpc" type="mpc" name="mpc" output="screen">

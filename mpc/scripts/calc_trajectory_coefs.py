@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
+from scipy.interpolate import CubicSpline
 from std_msgs.msg import Float64MultiArray
 import rospy
 import tf2_ros as tf2
@@ -56,6 +57,13 @@ while not rospy.is_shutdown():
 
         coefs = Float64MultiArray()
         coefs.data = np.polyfit(x, y, deg=2)
+        strictly_increasing = Trueg
+        for i in range(1, len(x)):
+            if x[i] <= x[i - 1]:
+                strictly_increasing = False
+        if strictly_increasing:
+            spline = CubicSpline(x, y)
+            print(spline)
         coef_pub.publish(coefs)
 
     except (tf.LookupException, tf.ConnectivityException):
