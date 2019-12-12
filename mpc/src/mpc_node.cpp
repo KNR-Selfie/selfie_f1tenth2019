@@ -71,7 +71,9 @@ int main(int argc, char** argv)
 
   ros::Rate rate(loop_rate);
   ros::spinOnce();
+  ros::Time
 
+  ros::Duration(2).sleep();
   while(ros::ok())
   {
     //get current state info
