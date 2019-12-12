@@ -104,13 +104,14 @@ int main(int argc, char** argv)
 
     if(updatePoints)
     {
-      int prev = -100000000;
+      double prev = -10000000;
       p.pts_x.clear();
       p.pts_y.clear();
       for (unsigned int i = 0; i < path_points.size(); ++i)
       {
         geometry_msgs::PointStamped point;
         listener.transformPoint("/base_link", path_points[i], point);
+	cout <<"x: "<< point.point.x << " y:   " << point.point.y << endl;
         if(point.point.x <= prev)
           break;
         prev = point.point.x;
