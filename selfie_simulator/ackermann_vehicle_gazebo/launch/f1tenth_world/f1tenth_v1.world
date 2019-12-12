@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<sdf version="1.4">
+  <world name="carollo_track_v1">
+    <include>
+      <uri>model:///home/piotr/catkin_ws/src/selfie_f1tenth2019/selfie_simulator/ackermann_vehicle_gazebo/launch/f1tenth_world/f1tenth_plane</uri>
+      <name>track</name>
+      <pose>0 -10 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://sun</uri>
+      <pose>0 0 10 0 0 0</pose>
+      <name>sun</name>
+    </include>
+    <include>
+      <uri>model:///home/piotr/catkin_ws/src/selfie_f1tenth2019/selfie_simulator/ackermann_vehicle_gazebo/launch/f1tenth_world/f1_tenth_easy_map</uri>
+      <name>walls</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+  </world>
+</sdf>

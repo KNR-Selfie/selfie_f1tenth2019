@@ -7,8 +7,10 @@ struct Params{
 	double lf;
 	double v_ref;
 	double a_max;
-	// polynomial = trajectory_coefficients[i]*x^i
-	std::vector<double> trajectory_coefs;
+
+	std::vector<double> pts_x, pts_y;
+	bool newPoints;
+
 	double w_a;
 	double w_cte;
 	double w_eps;

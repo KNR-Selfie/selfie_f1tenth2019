@@ -1,6 +1,7 @@
 #define HAVE_STDDEF_H
 #include <cppad/cppad.hpp>
 #include <cppad/ipopt/solve.hpp>
+#include <iostream>
 #undef HAVE_STDDEF_H
 #include <iostream>
 #include <fstream>
@@ -12,9 +13,13 @@
 #include <nav_msgs/Path.h>
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float64MultiArray.h"
+#include <cppad_spline.hpp>
 #include "mpc.h"
 
 using CppAD::AD;
+using namespace std;
+
+CppAD::spline* spline = nullptr;
 
 class FG_eval {
 
@@ -63,11 +68,10 @@ public:
 			AD<double> an = v1*v1*CppAD::sin(beta1)/p.lr;
 			AD<double> a_max = p.a_max;
 			// course trajectory error
-			AD<double> y_trajectory = p.trajectory_coefs[0]
-															+ x1*p.trajectory_coefs[1]
-															+ x1*x1*p.trajectory_coefs[2];
-			AD<double> psi_trajectory = p.trajectory_coefs[1]
-																+ 2.0*x1*p.trajectory_coefs[2];
+			AD<double> y_trajectory = CppAD::Value((*spline)(x1));
+
+      //TODO: derivative of p.spline
+			AD<double> psi_trajectory = psi1;
 
 			AD<double> a_total2 = CppAD::pow(at, 2) + CppAD::pow(an, 2);
 			AD<double> a_max2 = CppAD::pow(a_max, 2);
@@ -106,6 +110,15 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 				 std::vector<double> state_upper, std::vector<double> steering_lower,
 				 std::vector<double> steering_upper, Params p){
 	typedef CPPAD_TESTVECTOR( double ) Dvector;
+
+  cout<<"X"<<endl;
+	if(p.newPoints)
+	{
+      if(spline != nullptr)
+			    delete spline;
+			spline = new CppAD::spline(p.pts_x, p.pts_y);
+	}
+	cout<<"A"<<endl;
 
 	// number of independent state and steering variables (domain dimension for f and g)
 	size_t number_of_variables = p.state_vars * (p.prediction_horizon + 1)
@@ -188,9 +201,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 	double an = v1*v1*sin(beta1)/p.lr;
 	double a_tot = sqrt(an*an + at*at);
 	std::cout << "total acceleration: " << sqrt(an*an + at*at) << "\n";
-	std::cout << "coefs: " <<  p.trajectory_coefs[2] << " "
-						<< p.trajectory_coefs[1] << " "
-						<< p.trajectory_coefs[0] << "\n";
+
 	std::ofstream file;
 	file.open("~/cost-acceleration.csv", std::fstream::out | std::fstream::app);
 	file << a_tot << "," << solution.obj_value << "\n";
@@ -217,9 +228,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
     polynomial_poses[i].header.stamp = ros::Time::now();
     polynomial_poses[i].header.frame_id = "base_link";
     polynomial_poses[i].pose.position.x = i;
-    polynomial_poses[i].pose.position.y = p.trajectory_coefs[0]
-                                        + p.trajectory_coefs[1] * (i)
-                                        + p.trajectory_coefs[2] * (i * i);
+    polynomial_poses[i].pose.position.y = CppAD::Value((*spline)(i));
   }
 
   std::swap(controls.polynomial_path.poses, polynomial_poses);

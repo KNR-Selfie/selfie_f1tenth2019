@@ -12,16 +12,17 @@
 #include <algorithm>
 #include "mpc.h"
 
-#define POLYFIT_ORDER 2
-
 using namespace std;
 
 double speed = 0;
-bool ready = false;
 Params p;
+bool ready = false;
+std::vector<geometry_msgs::PointStamped> path_points;
+bool updatePoints = false;
+
 
 void speedCallback(const std_msgs::Float64::ConstPtr& msg);
-void trajectoryCoefsCallback(const std_msgs::Float64MultiArray::ConstPtr& msg);
+void pathCallback(const nav_msgs::Path::ConstPtr& msg);
 
 
 int main(int argc, char** argv)
@@ -34,10 +35,9 @@ int main(int argc, char** argv)
   ros::Publisher drive = nh.advertise<ackermann_msgs::AckermannDriveStamped>("drive", 1000);
   // order of the forces - [Ffx, Ffy, Frx, Fry, |Ff|, |Fr|]
   ros::Subscriber speed_sub = nh.subscribe("speed", 1000, speedCallback);
-  ros::Subscriber trajectory_coefs = nh.subscribe("trajectory_coefs", 1000, trajectoryCoefsCallback);
-
-  tf::TransformListener listener;
+  ros::Subscriber path_sub = nh.subscribe("path", 1000, pathCallback);
   tf::StampedTransform transform;
+  tf::TransformListener listener;
 
   double max_steering_angle;
   double v_max, v_min;
@@ -67,6 +67,7 @@ int main(int argc, char** argv)
   // a, delta
   p.steering_vars = 2;
   p.constraint_functions = 4;
+  p.newPoints = false;
 
   ros::Rate rate(loop_rate);
   ros::spinOnce();
@@ -81,6 +82,8 @@ int main(int argc, char** argv)
       rate.sleep();
       continue;
     }
+
+    listener.lookupTransform("/skidpad", "/base_link", ros::Time(0), transform);
 
     std::vector<double> state(p.state_vars);
     state[0] = 0; //x
@@ -98,6 +101,18 @@ int main(int argc, char** argv)
     std::vector<double> steering_lower{-max_steering_angle, -0.2};
 
     std::vector<double> steering_upper{max_steering_angle, 2};
+
+    if(updatePoints)
+    {
+      for (unsigned int i = 0; i < path_points.size(); ++i)
+      {
+        geometry_msgs::PointStamped point;
+        listener.transformPoint("/base_link", path_points[i], point);
+        p.pts_x.push_back(point.point.x);
+        p.pts_y.push_back(point.point.y);
+      }
+      p.newPoints = true;
+    }
     clock_t time = clock();
     controls = mpc.mpc_solve(state, state_lower, state_upper, steering_lower,
                              steering_upper, p);
@@ -135,10 +150,18 @@ void speedCallback(const std_msgs::Float64::ConstPtr& msg)
   speed = msg->data;
 }
 
-void trajectoryCoefsCallback(const std_msgs::Float64MultiArray::ConstPtr& msg)
+void pathCallback(const nav_msgs::Path::ConstPtr& msg)
 {
-  // totally worth it for vector length 3
-  p.trajectory_coefs = msg->data;
-  std::reverse(std::begin(p.trajectory_coefs), std::end(p.trajectory_coefs));
+
+  path_points.clear();
+  for(unsigned int i = 0; i < msg->poses.size(); ++i)
+  {
+    geometry_msgs::PointStamped point;
+    point.point = msg->poses[i].pose.position;
+    point.header.frame_id = msg->header.frame_id;
+    path_points.push_back(point);
+  }
+  updatePoints = true;
   ready = true;
+
 }

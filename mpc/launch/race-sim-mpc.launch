@@ -4,8 +4,6 @@
 
 	<node pkg="ackermann_vehicle_gazebo" name="speed_from_gazebo_pub" type="speed_from_gazebo_pub.py" output="screen"/>
 
-	<node pkg="mpc" name="calc_trajectory_coefs" type="calc_trajectory_coefs.py" output="screen"/>
-
 	<node pkg="skidpad_planner" type="skidpad_planner" name="skidpad_planner">
 			<param name="~skipad/R" type="double" value="5.0"/>
 			<param name="~skipad/a" type="double" value="5.0"/>
