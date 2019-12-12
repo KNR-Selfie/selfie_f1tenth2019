@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   ros::Publisher drive = nh.advertise<ackermann_msgs::AckermannDriveStamped>("drive", 1000);
   // order of the forces - [Ffx, Ffy, Frx, Fry, |Ff|, |Fr|]
   ros::Subscriber speed_sub = nh.subscribe("speed", 1000, speedCallback);
-  ros::Subscriber path_sub = nh.subscribe("path", 1000, pathCallback);
+  ros::Subscriber path_sub = nh.subscribe("closest_path_points", 1000, pathCallback);
   tf::StampedTransform transform;
   tf::TransformListener listener;
 
