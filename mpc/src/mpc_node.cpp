@@ -69,6 +69,8 @@ int main(int argc, char** argv)
   p.constraint_functions = 5;
   p.newPoints = false;
 
+  double avg_acceleration = 0;
+  double loop_count = 1;
   ros::Rate rate(loop_rate);
   ros::spinOnce();
   ros::Duration(2.0).sleep();
@@ -111,7 +113,7 @@ int main(int argc, char** argv)
       {
         geometry_msgs::PointStamped point;
         listener.transformPoint("/base_link", path_points[i], point);
-	      cout << "x: "<< point.point.x << " y:   " << point.point.y << endl;
+	     // cout << "x: "<< point.point.x << " y:   " << point.point.y << endl;
         if(point.point.x <= prev)
           continue;
         prev = point.point.x;
@@ -137,6 +139,11 @@ int main(int argc, char** argv)
     drive_msg.drive.speed = controls.velocity;
     drive_msg.drive.acceleration = controls.acceleration;
 
+
+    avg_acceleration += controls.get_total_acceleration2(p.lr, p.lf);
+    cout << "avg acceleration:" << avg_acceleration/loop_count << endl;
+    ++loop_count;
+
     optimal_path_msg = controls.predicted_path;
     polynomial_path_msg = controls.polynomial_path;
 
@@ -147,7 +154,7 @@ int main(int argc, char** argv)
     ros::spinOnce();
 
     rate.sleep();
-    std::cout << "speed: " << speed << std::endl;
+    //std::cout << "speed: " << speed << std::endl;
   }
   return 0;
 }

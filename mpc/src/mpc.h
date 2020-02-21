@@ -1,5 +1,6 @@
 #ifndef MPC_H
 #define MPC_H
+#include <cmath>
 
 struct Params{
 	double dt;
@@ -32,9 +33,18 @@ struct Params{
 struct Controls{
   double delta;
   double velocity;
-	double acceleration;
+  double acceleration;
   nav_msgs::Path predicted_path;
   nav_msgs::Path polynomial_path;
+
+  double get_total_acceleration2(double lr, double lf){
+      double at2 = acceleration*acceleration;
+      double beta = atan(lr/(lr + lf) * tan(delta));
+      double an = velocity*velocity * sin(beta)/lr;
+      double an2 = an*an;
+      return at2 + an2;
+  }
+
 };
 
 
