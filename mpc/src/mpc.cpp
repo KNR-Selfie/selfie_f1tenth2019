@@ -99,6 +99,7 @@ public:
 			fg[2 + p.constraint_functions * t] = y1 - (y0 + v_avg * p.dt * CppAD::sin(psi0 + beta0));
 			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * CppAD::sin(beta0)/p.lr);
 			fg[4 + p.constraint_functions * t] = v1 - (v0 + a0 * p.dt);
+            fg[5 + p.constraint_functions * t] = a_total2;
 
 		}
 		return;
@@ -150,10 +151,15 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 		}
 	}
 
+    const int G_ACCELERATION_INDEX = 4;
 	// lower and upper limits for g
 	Dvector g_lower(number_of_constraints), g_upper(number_of_constraints);
 	for(int i = 0; i < number_of_constraints; ++i){
 		g_lower[i] = 0; g_upper[i] = 0;
+        if(i % G_ACCELERATION_INDEX == 0){
+            g_lower[i] = -1;
+            g_upper[i] = p.a_max*p.a_max;
+        }
 	}
 	// object that computes objective and constraints
 	FG_eval fg_eval(p);
@@ -170,7 +176,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
   options += "Sparse  true        reverse\n";
   // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
   // Change this as you see fit.
-  options += "Numeric max_cpu_time          0.5\n";
+  options += "Numeric max_cpu_time          0.2\n";
 	// place to return solution
 	CppAD::ipopt::solve_result<Dvector> solution;
 

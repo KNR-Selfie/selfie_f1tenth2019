@@ -66,7 +66,7 @@ int main(int argc, char** argv)
   p.state_vars = 4;
   // a, delta
   p.steering_vars = 2;
-  p.constraint_functions = 4;
+  p.constraint_functions = 5;
   p.newPoints = false;
 
   ros::Rate rate(loop_rate);
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
         listener.transformPoint("/base_link", path_points[i], point);
 	      cout << "x: "<< point.point.x << " y:   " << point.point.y << endl;
         if(point.point.x <= prev)
-          break;
+          continue;
         prev = point.point.x;
         p.pts_x.push_back(point.point.x);
         p.pts_y.push_back(point.point.y);
