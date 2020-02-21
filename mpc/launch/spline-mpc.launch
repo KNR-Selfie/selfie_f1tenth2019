@@ -1,7 +1,21 @@
 <launch>
 
+	<node pkg="ackermann_vehicle_gazebo" name="map_to_baselink_pub" type="map_to_baselink_pub.py" output="screen"/>
 
-<node pkg="mpc" type="mpc" name="mpc" output="screen">
+	<node pkg="ackermann_vehicle_gazebo" name="speed_from_gazebo_pub" type="speed_from_gazebo_pub.py" output="screen"/>
+
+	<node pkg="mpc" name="calc_trajectory_coefs" type="calc_trajectory_coefs.py" output="screen"/>
+
+	<node pkg="skidpad_planner" type="skidpad_planner" name="skidpad_planner">
+			<param name="~skipad/R" type="double" value="5.0"/>
+			<param name="~skipad/a" type="double" value="5.0"/>
+			<param name="~skipad/b" type="double" value="5.0"/>
+			<param name="~path/start" type="double" value="-1.0"/>
+			<param name="~path/stop" type="double" value="5.0"/>
+			<param name="~path/step" type="double" value="0.25"/>
+	</node >
+
+	<node pkg="mpc" type="mpc" name="mpc" output="screen">
 			<param name="loop_rate" type="int" value="20" />
 			<param name="prediction_horizon" type="int" value="10" />
 			<param name="dt" type="double" value="0.1" />
