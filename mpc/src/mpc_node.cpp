@@ -61,7 +61,6 @@ int main(int argc, char** argv)
   pnh.param("sigmoid_k", p.sigmoid_k, 1.0);
   pnh.param("lf", p.lf, 0.25);
   pnh.param("lr", p.lr, 0.25);
-
   // x, y, psi, v
   p.state_vars = 4;
   // a, delta

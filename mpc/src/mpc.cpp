@@ -62,10 +62,10 @@ public:
 
 			AD<double> v_avg = v0 + 0.5*a0*p.dt;
 
-			AD<double> beta0 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta0));
-			AD<double> beta1 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta1));
+			AD<double> beta0 = p.lr/(p.lf + p.lr) * delta0;
+			AD<double> beta1 = p.lr/(p.lf + p.lr) * delta1;
 			AD<double> at = a1;
-			AD<double> an = v1*v1*CppAD::sin(beta1)/p.lr;
+			AD<double> an = v1*v1*beta1/p.lr;
 			AD<double> a_max = p.a_max;
 			// course trajectory error
 			AD<double> y_trajectory = (*spline)(x1);
@@ -75,7 +75,7 @@ public:
 			AD<double> psi_trajectory = psi1;
 
 			AD<double> a_total2 = CppAD::pow(at, 2) + CppAD::pow(an, 2);
-			AD<double> a_max2 = CppAD::pow(a_max, 2);
+			//AD<double> a_max2 = CppAD::pow(a_max, 2);
             AD<double> k = p.sigmoid_k;
             AD<double> w_a = p.w_a;
 			// acceleration barrier function
@@ -95,11 +95,15 @@ public:
 			fg[0] += p.w_delta_var * CppAD::pow(delta1 - delta0, 2);
 			fg[0] += p.w_a_var * CppAD::pow(a1 - a0, 2);
 
-			fg[1 + p.constraint_functions * t] = x1 - (x0 + v_avg * p.dt * CppAD::cos(psi0 + beta0));
+            // AN EXPERIMENTO
+
+
+			fg[1 + p.constraint_functions * t] = x1 - (x0 + v_avg * p.dt * 1);
 			fg[2 + p.constraint_functions * t] = y1 - (y0 + v_avg * p.dt * CppAD::sin(psi0 + beta0));
-			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * CppAD::sin(beta0)/p.lr);
+			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * beta0/p.lr);
 			fg[4 + p.constraint_functions * t] = v1 - (v0 + a0 * p.dt);
-            fg[5 + p.constraint_functions * t] = a_total2;
+            fg[5 + p.constraint_functions * t] = 1;
+            //fg[6 + p.constraint_functions * t] = a1;
 
 		}
 		return;
@@ -151,29 +155,59 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 		}
 	}
 
-    const int G_ACCELERATION_INDEX = 4;
 	// lower and upper limits for g
 	Dvector g_lower(number_of_constraints), g_upper(number_of_constraints);
-	for(int i = 0; i < number_of_constraints; ++i){
-		g_lower[i] = 0; g_upper[i] = 0;
-        if(i % G_ACCELERATION_INDEX == 0){
-            g_lower[i] = -1;
-            g_upper[i] = p.a_max*p.a_max;
+    g_lower[0] = 0; g_upper[0] = 0;
+
+    for(int i = 0; i < p.prediction_horizon; i++){
+
+        g_lower[i * p.constraint_functions] = 0;
+        g_upper[i * p.constraint_functions] = 0;
+
+        g_lower[1 + i * p.constraint_functions] = 0;
+        g_upper[1 + i * p.constraint_functions] = 0;
+
+        g_lower[2 + i * p.constraint_functions] = 0;
+        g_upper[2 + i * p.constraint_functions] = 0;
+
+        g_lower[3 + i * p.constraint_functions] = 0;
+        g_upper[3 + i * p.constraint_functions] = 0;
+
+        g_lower[4 + i * p.constraint_functions] = 1;
+        g_upper[4 + i * p.constraint_functions] = 20;
+
+        //g_lower[5 + i * p.constraint_functions] = -p.a_max;
+        //g_upper[5 + i * p.constraint_functions] = p.a_max;
+
+    }
+
+	/*for(int i = 1; i < number_of_constraints; ++i){
+        if(i % G_AN_INDEX == 0){
+            g_lower[i] = 0;
+            g_upper[i] = 10;
         }
-	}
+        else if(i % G_AT_INDEX == 0){
+            g_lower[i] = 0;
+            g_upper[i] = 10;
+        }
+        else{
+            g_lower[i] = 0; g_upper[i] = 0;
+        }
+	}*/
 	// object that computes objective and constraints
 	FG_eval fg_eval(p);
 
 	// options
 	std::string options;
 	// turn off any printing
-  options += "Integer print_level  0\n";
+  options += "Integer print_level  2\n";
+  options += "Integer acceptable_iter         15000\n";
   // NOTE: Setting sparse to true allows the solver to take advantage
   //   of sparse routines, this makes the computation MUCH FASTER. If you can
   //   uncomment 1 of these and see if it makes a difference or not but if you
   //   uncomment both the computation time should go up in orders of magnitude.
-  options += "Sparse  true        forward\n";
-  options += "Sparse  true        reverse\n";
+   options += "Sparse  true        forward\n";
+   options += "Sparse  true        reverse\n";
   // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
   // Change this as you see fit.
   options += "Numeric max_cpu_time          0.2\n";
@@ -184,6 +218,9 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 	CppAD::ipopt::solve<Dvector, FG_eval>(
 		options, xi, xi_lower, xi_upper, g_lower, g_upper, fg_eval, solution
 	);
+
+    std::cout << "cost: " << solution.obj_value << "\n";
+
 	// ============== DEBUG =====================
 	/*std::cout << "cost: " << solution.obj_value << "\n";
 
