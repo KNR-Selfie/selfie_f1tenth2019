@@ -8,6 +8,7 @@ struct Params{
 	double lf;
 	double v_ref;
 	double a_max;
+    double an_max;
 
 	std::vector<double> pts_x, pts_y;
 	bool newPoints;
@@ -43,6 +44,11 @@ struct Controls{
       double an = velocity*velocity * sin(beta)/lr;
       double an2 = an*an;
       return at2 + an2;
+  }
+
+  double get_normal_acceleration(double lr, double lf){
+      double beta = lr/(lr + lf) * delta;
+      return velocity*velocity * beta/lr;
   }
 
 };

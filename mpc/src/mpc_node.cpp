@@ -58,6 +58,7 @@ int main(int argc, char** argv)
   pnh.param("v_max", v_max, 0.5);
   pnh.param("v_min", v_min, -0.1);
   pnh.param("a_max", p.a_max, 0.8);
+  pnh.param("an_max", p.an_max, 1.0);
   pnh.param("sigmoid_k", p.sigmoid_k, 1.0);
   pnh.param("lf", p.lf, 0.25);
   pnh.param("lr", p.lr, 0.25);
@@ -139,7 +140,7 @@ int main(int argc, char** argv)
     drive_msg.drive.acceleration = controls.acceleration;
 
 
-    avg_acceleration += controls.get_total_acceleration2(p.lr, p.lf);
+    avg_acceleration += controls.get_normal_acceleration(p.lr, p.lf);
     cout << "avg acceleration:" << avg_acceleration/loop_count << endl;
     ++loop_count;
 

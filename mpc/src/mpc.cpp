@@ -102,7 +102,7 @@ public:
 			fg[2 + p.constraint_functions * t] = y1 - (y0 + v_avg * p.dt * CppAD::sin(psi0 + beta0));
 			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * beta0/p.lr);
 			fg[4 + p.constraint_functions * t] = v1 - (v0 + a0 * p.dt);
-            fg[5 + p.constraint_functions * t] = 1;
+            fg[5 + p.constraint_functions * t] = an;
             //fg[6 + p.constraint_functions * t] = a1;
 
 		}
@@ -173,27 +173,13 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
         g_lower[3 + i * p.constraint_functions] = 0;
         g_upper[3 + i * p.constraint_functions] = 0;
 
-        g_lower[4 + i * p.constraint_functions] = 1;
-        g_upper[4 + i * p.constraint_functions] = 20;
+        g_lower[4 + i * p.constraint_functions] = -p.an_max;
+        g_upper[4 + i * p.constraint_functions] = p.an_max;
 
         //g_lower[5 + i * p.constraint_functions] = -p.a_max;
         //g_upper[5 + i * p.constraint_functions] = p.a_max;
 
     }
-
-	/*for(int i = 1; i < number_of_constraints; ++i){
-        if(i % G_AN_INDEX == 0){
-            g_lower[i] = 0;
-            g_upper[i] = 10;
-        }
-        else if(i % G_AT_INDEX == 0){
-            g_lower[i] = 0;
-            g_upper[i] = 10;
-        }
-        else{
-            g_lower[i] = 0; g_upper[i] = 0;
-        }
-	}*/
 	// object that computes objective and constraints
 	FG_eval fg_eval(p);
 
@@ -202,12 +188,13 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 	// turn off any printing
   options += "Integer print_level  2\n";
   options += "Integer acceptable_iter         15000\n";
+  options += "Numeric acceptable_constr_viol_tol         0.001\n";
   // NOTE: Setting sparse to true allows the solver to take advantage
   //   of sparse routines, this makes the computation MUCH FASTER. If you can
   //   uncomment 1 of these and see if it makes a difference or not but if you
   //   uncomment both the computation time should go up in orders of magnitude.
-   options += "Sparse  true        forward\n";
-   options += "Sparse  true        reverse\n";
+  options += "Sparse  true        forward\n";
+  options += "Sparse  true        reverse\n";
   // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
   // Change this as you see fit.
   options += "Numeric max_cpu_time          0.2\n";
