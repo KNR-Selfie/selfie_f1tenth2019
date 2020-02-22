@@ -96,13 +96,11 @@ public:
 			fg[0] += p.w_a_var * CppAD::pow(a1 - a0, 2);
 
             // AN EXPERIMENTO
-
-
 			fg[1 + p.constraint_functions * t] = x1 - (x0 + v_avg * p.dt * 1);
 			fg[2 + p.constraint_functions * t] = y1 - (y0 + v_avg * p.dt * CppAD::sin(psi0 + beta0));
 			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * beta0/p.lr);
 			fg[4 + p.constraint_functions * t] = v1 - (v0 + a0 * p.dt);
-            fg[5 + p.constraint_functions * t] = an;
+            fg[5 + p.constraint_functions * t] = CppAD::pow(v0*v0*beta0/p.lr, 2) + CppAD::pow(a0, 2);
             //fg[6 + p.constraint_functions * t] = a1;
 
 		}
@@ -173,8 +171,8 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
         g_lower[3 + i * p.constraint_functions] = 0;
         g_upper[3 + i * p.constraint_functions] = 0;
 
-        g_lower[4 + i * p.constraint_functions] = -p.an_max;
-        g_upper[4 + i * p.constraint_functions] = p.an_max;
+        g_lower[4 + i * p.constraint_functions] = -p.a_max;
+        g_upper[4 + i * p.constraint_functions] = p.a_max;
 
         //g_lower[5 + i * p.constraint_functions] = -p.a_max;
         //g_upper[5 + i * p.constraint_functions] = p.a_max;

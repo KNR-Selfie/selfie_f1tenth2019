@@ -27,7 +27,7 @@
 			<param name="w_a" type="double" value="10.0" />
 			<param name="v_max" type="double" value="7.0" />
 			<param name="v_min" type="double" value="-0.2" />
-			<param name="v_ref" type="double" value="3.0" />
+			<param name="v_ref" type="double" value="5.0" />
 			<param name="a_max" type="double" value="2.0" />
             <param name="an_max" type="double" value="0.5" />
 			<param name="sigmoid_k" type="double" value="8.0" />

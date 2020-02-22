@@ -140,8 +140,9 @@ int main(int argc, char** argv)
     drive_msg.drive.acceleration = controls.acceleration;
 
 
-    avg_acceleration += controls.get_normal_acceleration(p.lr, p.lf);
-    cout << "avg acceleration:" << avg_acceleration/loop_count << endl;
+    avg_acceleration = controls.get_total_acceleration2(p.lr, p.lf);
+    cout << "avg acceleration:" << sqrt(avg_acceleration) << endl;
+    //cout << "acceleration:" << avg_acceleration << endl;
     ++loop_count;
 
     optimal_path_msg = controls.predicted_path;
