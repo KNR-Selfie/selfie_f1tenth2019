@@ -20,7 +20,7 @@ private:
 
 spline::spline(std::vector<double> x, std::vector<double> y)
 {
-  impl_.set_points(x, y);
+  impl_.set_points(x, y, false);
 }
 
 AD<double> spline::operator()(AD<double> x) const
