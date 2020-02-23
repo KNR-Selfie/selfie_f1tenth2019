@@ -94,7 +94,7 @@ public:
 			fg[2 + p.constraint_functions * t] = y1 - (y0 + v_avg * p.dt * CppAD::sin(psi0 + beta0));
 			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * CppAD::sin(beta0)/p.lr);
 			fg[4 + p.constraint_functions * t] = v1 - (v0 + a0 * p.dt);
-            //fg[5 + p.constraint_functions * t] = CppAD::pow(an, 2) + CppAD::pow(at, 2);
+            fg[5 + p.constraint_functions * t] = CppAD::pow(an, 2) + CppAD::pow(at, 2);
 
 		}
 		return;
