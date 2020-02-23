@@ -68,19 +68,19 @@ public:
 			AD<double> an = v0*v0*CppAD::sin(beta0)/p.lr;
 			AD<double> a_max = p.a_max;
 			// course trajectory error
-			AD<double> y_path = (*spline)(x1);
+			AD<double> y_path = (*spline)(x0);
 
 
       		//TODO: derivative of p.spline
-			AD<double> psi_path = psi1;
+			AD<double> psi_path = psi0;
 
 			//AD<double> a_max2 = CppAD::pow(a_max, 2);
             AD<double> k = p.sigmoid_k;
             AD<double> w_a = p.w_a;
 			// course trajectory error
-			fg[0] += p.w_cte * CppAD::pow(y1 - y_path, 2);
+			fg[0] += p.w_cte * CppAD::pow(y0 - y_path, 2);
 			// course heading error
-			fg[0] += p.w_eps * CppAD::pow(psi1 - psi_path, 2);
+			fg[0] += p.w_eps * CppAD::pow(psi0 - psi_path, 2);
 			// velocity error
 			fg[0] += p.w_v * CppAD::pow(v_avg - p.v_ref, 2);
 			// penalize bigger steering angles
@@ -194,7 +194,9 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 	);
 
     std::cout << "cost: " << solution.obj_value << "\n";
-
+	for(int i = 0; i < 5; i+=0.5){
+		cout << (*spline)(i) << ", ";
+	}
 	// ============== DEBUG =====================
 	/*std::cout << "cost: " << solution.obj_value << "\n";
 
