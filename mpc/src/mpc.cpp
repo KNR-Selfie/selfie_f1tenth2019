@@ -174,8 +174,8 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 	std::string options;
 	// turn off any printing
   options += "Integer print_level  2\n";
-  options += "Integer acceptable_iter         100\n";
-  options += "Numeric acceptable_constr_viol_tol         0.01\n";
+  //options += "Integer acceptable_iter         100\n";
+  //options += "Numeric acceptable_constr_viol_tol         0.01\n";
   // NOTE: Setting sparse to true allows the solver to take advantage
   //   of sparse routines, this makes the computation MUCH FASTER. If you can
   //   uncomment 1 of these and see if it makes a difference or not but if you
@@ -184,7 +184,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
   options += "Sparse  true        reverse\n";
   // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
   // Change this as you see fit.
-  options += "Numeric max_cpu_time          0.4\n";
+  options += "Numeric max_cpu_time          0.1\n";
 	// place to return solution
 	CppAD::ipopt::solve_result<Dvector> solution;
 
