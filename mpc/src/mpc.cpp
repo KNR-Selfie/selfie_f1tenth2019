@@ -62,45 +62,39 @@ public:
 
 			AD<double> v_avg = v0 + 0.5*a0*p.dt;
 
-			AD<double> beta0 = p.lr/(p.lf + p.lr) * delta0;
-			AD<double> beta1 = p.lr/(p.lf + p.lr) * delta1;
-			AD<double> at = a1;
-			AD<double> an = v1*v1*beta1/p.lr;
+			AD<double> beta0 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta0));
+			AD<double> beta1 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta1));
+			AD<double> at = a0;
+			AD<double> an = v0*v0*CppAD::sin(beta0)/p.lr;
 			AD<double> a_max = p.a_max;
 			// course trajectory error
-			AD<double> y_trajectory = (*spline)(x1);
+			AD<double> y_path = (*spline)(x1);
 
 
-      //TODO: derivative of p.spline
-			AD<double> psi_trajectory = psi1;
+      		//TODO: derivative of p.spline
+			AD<double> psi_path = psi1;
 
-			AD<double> a_total2 = CppAD::pow(at, 2) + CppAD::pow(an, 2);
 			//AD<double> a_max2 = CppAD::pow(a_max, 2);
             AD<double> k = p.sigmoid_k;
             AD<double> w_a = p.w_a;
-			// acceleration barrier function
-			/*fg[0] += 1.0/(CppAD::exp(-k*(-a_max2 - a_total2)) + 1)
-						 * (-a_max2 - a_total2 + w_a)
-						 + 1.0/(CppAD::exp(-k*(a_total2 - a_max2)) + 1)
-						 * (a_total2 - a_max2 + w_a);*/
 			// course trajectory error
-			fg[0] += p.w_cte * CppAD::pow(y1 - y_trajectory, 2);
+			fg[0] += p.w_cte * CppAD::pow(y1 - y_path, 2);
 			// course heading error
-			fg[0] += p.w_eps * CppAD::pow(psi1 - psi_trajectory, 2);
+			fg[0] += p.w_eps * CppAD::pow(psi1 - psi_path, 2);
 			// velocity error
 			fg[0] += p.w_v * CppAD::pow(v_avg - p.v_ref, 2);
 			// penalize bigger steering angles
-			fg[0] += p.w_delta * CppAD::pow(delta0, 2);
+			//fg[0] += p.w_delta * CppAD::pow(delta0, 2);
 			// sequential actuations
-			fg[0] += p.w_delta_var * CppAD::pow(delta1 - delta0, 2);
-			fg[0] += p.w_a_var * CppAD::pow(a1 - a0, 2);
+			//fg[0] += p.w_delta_var * CppAD::pow(delta1 - delta0, 2);
+			//fg[0] += p.w_a_var * CppAD::pow(a1 - a0, 2);
 
             // constraints
-			fg[1 + p.constraint_functions * t] = x1 - (x0 + v_avg * p.dt * 1);
+			fg[1 + p.constraint_functions * t] = x1 - (x0 + v_avg * p.dt * CppAD::cos(psi0 + beta0));
 			fg[2 + p.constraint_functions * t] = y1 - (y0 + v_avg * p.dt * CppAD::sin(psi0 + beta0));
-			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * beta0/p.lr);
+			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * CppAD::sin(beta0)/p.lr);
 			fg[4 + p.constraint_functions * t] = v1 - (v0 + a0 * p.dt);
-            fg[5 + p.constraint_functions * t] = CppAD::pow(v0*v0*beta0/p.lr, 2) + CppAD::pow(a0, 2);
+            fg[5 + p.constraint_functions * t] = CppAD::pow(an, 2) + CppAD::pow(at, 2);
 
 		}
 		return;
@@ -170,8 +164,8 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
         g_lower[3 + i * p.constraint_functions] = 0;
         g_upper[3 + i * p.constraint_functions] = 0;
 
-        g_lower[4 + i * p.constraint_functions] = -p.a_max;
-        g_upper[4 + i * p.constraint_functions] = p.a_max;
+        g_lower[4 + i * p.constraint_functions] = 0;
+        g_upper[4 + i * p.constraint_functions] = p.a_max * p.a_max;
     }
 	// object that computes objective and constraints
 	FG_eval fg_eval(p);

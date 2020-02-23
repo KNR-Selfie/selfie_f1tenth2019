@@ -18,9 +18,9 @@
 			<param name="prediction_horizon" type="int" value="10" />
 			<param name="dt" type="double" value="0.1" />
 			<param name="max_steering_angle" type="double" value="0.44" />
-			<param name="w_cte" type="double" value="10.0" />
+			<param name="w_cte" type="double" value="150.0" />
 			<param name="w_eps" type="double" value="1.0" />
-			<param name="w_v" type="double" value="0.5" />
+			<param name="w_v" type="double" value="0.05" />
 			<param name="w_delta" type="double" value="1.0" />
 			<param name="w_delta_var" type="double" value="1.0" />
 			<param name="w_a_var" type="double" value="1.0" />
