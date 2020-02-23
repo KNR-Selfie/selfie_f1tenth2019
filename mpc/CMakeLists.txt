@@ -19,5 +19,5 @@ catkin_package(
 
 include_directories( ${catkin_INCLUDE_DIRS} include )
 
-add_executable(${PROJECT_NAME} src/mpc_node.cpp src/mpc.cpp )
+add_executable(${PROJECT_NAME} src/mpc_node.cpp src/mpc.cpp src/PolyFit.cpp)
 target_link_libraries(${PROJECT_NAME} ipopt ${catkin_LIBRARIES})

@@ -13,13 +13,12 @@
 #include <nav_msgs/Path.h>
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float64MultiArray.h"
-#include <cppad_spline.hpp>
 #include "mpc.h"
+#include "PolyFit.h"
 
 using CppAD::AD;
 using namespace std;
 
-CppAD::spline* spline = nullptr;
 
 class FG_eval {
 
@@ -68,10 +67,9 @@ public:
 			AD<double> an = v0*v0*CppAD::sin(beta0)/p.lr;
 			AD<double> a_max = p.a_max;
 			// course trajectory error
-			AD<double> y_path = (*spline)(x0);
+			AD<double> y_path = p.coeffs[0] + p.coeffs[1]*x0 + p.coeffs[2]*x0*x0;
 
 
-      		//TODO: derivative of p.spline
 			AD<double> psi_path = psi0;
 
 			//AD<double> a_max2 = CppAD::pow(a_max, 2);
@@ -109,9 +107,17 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 
 	if(p.newPoints)
 	{
-      if(spline != nullptr)
-			    delete spline;
-			spline = new CppAD::spline(p.pts_x, p.pts_y);
+      PolyFit pfit;
+			vector<Point> v;
+			for(int i = 0; i < p.pts_x.size(); ++i)
+			{
+				Point a;
+				a.x = p.pts_x[i];
+				a.y = p.pts_y[i];
+				v.push_back(a);
+			}
+			pfit.setInput(v);
+			p.coeffs = pfit.solve();
 	}
 
 	// number of independent state and steering variables (domain dimension for f and g)
@@ -242,13 +248,9 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
     polynomial_poses[i].header.stamp = ros::Time::now();
     polynomial_poses[i].header.frame_id = "base_link";
     polynomial_poses[i].pose.position.x = i;
-    polynomial_poses[i].pose.position.y = CppAD::Value((*spline)(i));
+    polynomial_poses[i].pose.position.y = p.coeffs[0] + p.coeffs[1]*i + p.coeffs[2]*i*i;
   }
-  cout << "splojn - predicted_y\n";
-  for(int i = 0; i < poses.size(); ++i){
-	  cout << (*spline)(poses[i].pose.position.x) - poses[i].pose.position.y << ", ";
-  }
-  cout << "\n";
+
 
   std::swap(controls.polynomial_path.poses, polynomial_poses);
   controls.polynomial_path.header.frame_id = "base_link";

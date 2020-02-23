@@ -11,6 +11,7 @@ struct Params{
     double an_max;
 
 	std::vector<double> pts_x, pts_y;
+	std::vector<double> coeffs;
 	bool newPoints;
 
 	double w_a;
