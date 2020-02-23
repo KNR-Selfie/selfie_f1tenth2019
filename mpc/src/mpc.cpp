@@ -194,9 +194,9 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 	);
 
     std::cout << "cost: " << solution.obj_value << "\n";
-	for(int i = 0; i < 5; i+=0.5){
-		cout << (*spline)(i) << ", ";
-	}
+	//for(int i = 0; i < 5; i+=0.5){
+	//	cout << (*spline)(i) << ", ";
+	//}
 	// ============== DEBUG =====================
 	/*std::cout << "cost: " << solution.obj_value << "\n";
 
