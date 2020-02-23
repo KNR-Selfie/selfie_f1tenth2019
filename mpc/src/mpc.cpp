@@ -82,7 +82,7 @@ public:
 			// velocity error
 			fg[0] += p.w_v * CppAD::pow(v_avg - p.v_ref, 2);
 			// penalize bigger steering angles
-			//fg[0] += p.w_delta * CppAD::pow(delta0, 2);
+			fg[0] += p.w_delta * CppAD::pow(delta0, 2);
 			// sequential actuations
 			fg[0] += p.w_delta_var * CppAD::pow(delta1 - delta0, 2);
 			fg[0] += p.w_a_var * CppAD::pow(a1 - a0, 2);
