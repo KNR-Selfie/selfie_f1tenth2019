@@ -225,7 +225,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
   controls.acceleration = solution.x[steering_start + p.steering_vars + p.a];
 
   std::vector <geometry_msgs::PoseStamped> poses(p.prediction_horizon);
-  std::vector <geometry_msgs::PoseStamped> polynomial_poses(p.prediction_horizon);
+  std::vector <geometry_msgs::PoseStamped> polynomial_poses(p.spline_visualization_points);
 
   for(int i = p.state_vars; i < steering_start; i += p.state_vars){
     int j = i/p.state_vars - 1;
@@ -235,11 +235,11 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
     poses[j].pose.position.y = solution.x[i + p.y];
   }
 
-  for (int i = 0; i < p.spline_visualization_points; i+=p.spline_visualization_delta)
+  for (int i = 0; i < p.spline_visualization_points; i++)
   {
     polynomial_poses[i].header.stamp = ros::Time::now();
     polynomial_poses[i].header.frame_id = "base_link";
-    polynomial_poses[i].pose.position.x = i;
+    polynomial_poses[i].pose.position.x = i*p.spline_visualization_delta;
     polynomial_poses[i].pose.position.y = CppAD::Value((*spline)(i));
   }
   // cout << "splojn - predicted_y\n";
