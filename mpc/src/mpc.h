@@ -24,6 +24,8 @@ struct Params{
 	size_t state_vars;
 	size_t steering_vars;
 	int prediction_horizon;
+	int spline_visualization_points;
+	double spline_visualization_delta;
 	size_t constraint_functions;
 	// order of state variables
 	size_t x = 0, y = 1, psi = 2, v = 3;

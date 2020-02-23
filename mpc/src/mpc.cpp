@@ -235,18 +235,18 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
     poses[j].pose.position.y = solution.x[i + p.y];
   }
 
-  for (int i = 0; i < p.prediction_horizon; i++)
+  for (int i = 0; i < p.spline_visualization_points; i+=p.spline_visualization_delta)
   {
     polynomial_poses[i].header.stamp = ros::Time::now();
     polynomial_poses[i].header.frame_id = "base_link";
     polynomial_poses[i].pose.position.x = i;
     polynomial_poses[i].pose.position.y = CppAD::Value((*spline)(i));
   }
-  cout << "splojn - predicted_y\n";
-  for(int i = 0; i < poses.size(); ++i){
-	  cout << (*spline)(poses[i].pose.position.x) - poses[i].pose.position.y << ", ";
-  }
-  cout << "\n";
+  // cout << "splojn - predicted_y\n";
+  // for(int i = 0; i < poses.size(); ++i){
+	//   cout << (*spline)(poses[i].pose.position.x) - poses[i].pose.position.y << ", ";
+  // }
+  // cout << "\n";
 
   std::swap(controls.polynomial_path.poses, polynomial_poses);
   controls.polynomial_path.header.frame_id = "base_link";
