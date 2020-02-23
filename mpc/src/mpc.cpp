@@ -62,10 +62,10 @@ public:
 
 			AD<double> v_avg = v0 + 0.5*a0*p.dt;
 
-			AD<double> beta0 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta0));
-			AD<double> beta1 = CppAD::atan(p.lr/(p.lf + p.lr) * CppAD::tan(delta1));
+			AD<double> beta0 = p.lr/(p.lf + p.lr) * delta0;
+			AD<double> beta1 = p.lr/(p.lf + p.lr) * delta1;
 			AD<double> at = a0;
-			AD<double> an = v0*v0*CppAD::sin(beta0)/p.lr;
+			AD<double> an = v0*v0*beta0/p.lr;
 			AD<double> a_max = p.a_max;
 			// course trajectory error
 			AD<double> y_path = (*spline)(x0);
@@ -90,9 +90,9 @@ public:
             // constraints
 			fg[1 + p.constraint_functions * t] = x1 - (x0 + v_avg * p.dt * CppAD::cos(psi0 + beta0));
 			fg[2 + p.constraint_functions * t] = y1 - (y0 + v_avg * p.dt * CppAD::sin(psi0 + beta0));
-			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * CppAD::sin(beta0)/p.lr);
+			fg[3 + p.constraint_functions * t] = psi1 - (psi0 + v_avg * p.dt * beta0/p.lr);
 			fg[4 + p.constraint_functions * t] = v1 - (v0 + a0 * p.dt);
-      fg[5 + p.constraint_functions * t] = CppAD::pow(an, 2) + CppAD::pow(at, 2);
+      		fg[5 + p.constraint_functions * t] = CppAD::pow(an, 2) + CppAD::pow(at, 2);
 
 		}
 		return;
