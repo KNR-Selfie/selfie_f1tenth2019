@@ -70,9 +70,7 @@ public:
 			// course trajectory error
 			AD<double> y_path = (*spline)(x0);
 
-
-      		//TODO: derivative of p.spline
-			AD<double> psi_path = psi0;
+			AD<double> psi_path = CppAD::atan((*spline)(x0));
 
 			//AD<double> a_max2 = CppAD::pow(a_max, 2);
             AD<double> k = p.sigmoid_k;
