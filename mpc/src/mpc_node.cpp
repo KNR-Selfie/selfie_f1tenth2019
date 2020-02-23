@@ -75,6 +75,8 @@ int main(int argc, char** argv)
   ros::Rate rate(loop_rate);
   ros::spinOnce();
   ros::Duration(2.0).sleep();
+  double last_delta = 0, last_acceleration = 0;
+
   while(ros::ok())
   {
     //get current state info
@@ -101,9 +103,9 @@ int main(int argc, char** argv)
 
     std::vector<double> state_upper{1e9, 1e9, 1e9, v_max};
 
-    std::vector<double> steering_lower{-max_steering_angle, -0.2};
+    std::vector<double> steering_lower{-max_steering_angle, -p.a_max};
 
-    std::vector<double> steering_upper{max_steering_angle, 2};
+    std::vector<double> steering_upper{max_steering_angle, p.a_max};
 
     if(updatePoints)
     {
@@ -124,8 +126,9 @@ int main(int argc, char** argv)
     }
     cout << endl;
     clock_t time = clock();
+
     controls = mpc.mpc_solve(state, state_lower, state_upper, steering_lower,
-                             steering_upper, p);
+                             steering_upper, p, last_acceleration, last_delta);
     time = clock() - time;
     std::cout << "mpc_exec_time: " << (double)time/CLOCKS_PER_SEC << std::endl;
 
@@ -139,6 +142,8 @@ int main(int argc, char** argv)
     drive_msg.drive.speed = controls.velocity;
     drive_msg.drive.acceleration = controls.acceleration;
 
+    last_delta = controls.delta;
+    last_acceleration = controls.acceleration;
 
     avg_acceleration = controls.get_total_acceleration2(p.lr, p.lf);
     cout << "avg acceleration:" << sqrt(avg_acceleration) << endl;

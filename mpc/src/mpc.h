@@ -67,7 +67,8 @@ public:
   // Main method of the MPC
   Controls mpc_solve(std::vector<double> state0, std::vector<double> state_lower,
   				 std::vector<double> state_upper, std::vector<double> steering_lower,
-           std::vector<double> steering_upper, Params p);
+           std::vector<double> steering_upper, Params p, double last_acceleration,
+	       double last_delta);
 
 };
 

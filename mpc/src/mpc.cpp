@@ -102,7 +102,8 @@ public:
 
 Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lower,
 				 std::vector<double> state_upper, std::vector<double> steering_lower,
-				 std::vector<double> steering_upper, Params p){
+				 std::vector<double> steering_upper, Params p, double last_acceleration,
+			     double last_delta){
 	typedef CPPAD_TESTVECTOR( double ) Dvector;
 
 	if(p.newPoints)
@@ -138,8 +139,13 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 
 
 	// lower and upper limits for steering variables
+	xi_lower[steering_start + p.a] = last_acceleration;
+	xi_upper[steering_start + p.a] = last_acceleration;
+	xi_lower[steering_start + p.delta] = last_delta;
+	xi_upper[steering_start + p.delta] = last_delta;
+
 	for(int i = 0; i < p.steering_vars; ++i){
-		for(int j = i + steering_start; j < xi.size(); j += p.steering_vars){
+		for(int j = i + steering_start + p.steering_vars; j < xi.size(); j += p.steering_vars){
 			xi_lower[j] = steering_lower[i]; xi_upper[j] = steering_upper[i];
 		}
 	}
@@ -242,6 +248,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
     polynomial_poses[i].pose.position.x = i*p.spline_visualization_delta;
     polynomial_poses[i].pose.position.y = CppAD::Value((*spline)(i*p.spline_visualization_delta));
   }
+  // DEBUG
   // cout << "splojn - predicted_y\n";
   // for(int i = 0; i < poses.size(); ++i){
 	//   cout << (*spline)(poses[i].pose.position.x) - poses[i].pose.position.y << ", ";
