@@ -32,6 +32,7 @@
             <param name="an_max" type="double" value="0.5" />
 			<param name="lf" type="double" value="0.2" />
 			<param name="lr" type="double" value="0.2" />
+			<param name="ipopt_cpu_time" type="double" value="0.15"/>
 			<param name="spline_visualization_delta" value="0.1"/>
 		    <param name="spline_visualization_points" value="40"/>
             <!--remap from="closest_path_points" to="path" /-->

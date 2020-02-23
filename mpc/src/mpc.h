@@ -21,6 +21,7 @@ struct Params{
 	double w_delta;
 	double w_a_var;
 	double sigmoid_k;
+	double ipopt_cpu_time;
 	size_t state_vars;
 	size_t steering_vars;
 	int prediction_horizon;

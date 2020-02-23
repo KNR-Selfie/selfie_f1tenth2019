@@ -59,6 +59,7 @@ int main(int argc, char** argv)
   pnh.param("v_min", v_min, -0.1);
   pnh.param("a_max", p.a_max, 0.8);
   pnh.param("an_max", p.an_max, 1.0);
+  pnh.param("ipopt_cpu_time", p.ipopt_cpu_time, 0.2);
   pnh.param("spline_visualization_delta", p.spline_visualization_delta, 0.1);
   pnh.param("spline_visualization_points", p.spline_visualization_points, 20);
   pnh.param("lf", p.lf, 0.25);
