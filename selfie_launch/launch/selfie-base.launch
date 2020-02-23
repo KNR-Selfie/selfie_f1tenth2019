@@ -17,8 +17,8 @@
   <node pkg="path_server" type="path_server" name="path_server" args="$(arg path_file)" />
 
   <node pkg="path_extractor" type="path_extractor.py" name="path_extractor">
-    <param name="path_points_backwards" type="int" value="0"/>
-    <param name="path_points_forwards" type="int" value="6" />
+    <param name="path_points_backwards" type="int" value="1"/>
+    <param name="path_points_forwards" type="int" value="16" />
     <param name="path_direction" type="bool" value="false" />
   </node>
 </launch>
