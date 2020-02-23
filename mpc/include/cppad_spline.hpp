@@ -24,26 +24,23 @@ spline::spline(std::vector<double> x, std::vector<double> y)
 
 AD<double> spline::operator()(AD<double> x) const
 {
-  size_t n=impl_.m_x.size();
+  size_t n = impl_.m_x.size();
 
-  // find the closest point m_x[idx] < x, idx=0 even if x<m_x[0]
-  std::vector<double>::const_iterator it;
-  it=std::lower_bound(impl_.m_x.begin(),impl_.m_x.end(),x);
-  int idx=std::max( int(it-impl_.m_x.begin())-1, 0);
+  // extrapolation to the left
+  AD<double> h = x - impl_.m_x[0];
+  AD<double> result = (impl_.m_b0*h + impl_.m_c0)*h + impl_.m_y[0];
 
-  AD<double> h=x-impl_.m_x[idx];
-  AD<double> interpol;
-  if(x<impl_.m_x[0]) {
-    // extrapolation to the left
-    interpol=(impl_.m_b0*h + impl_.m_c0)*h + impl_.m_y[0];
-  } else if(x>impl_.m_x[n-1]) {
-    // extrapolation to the right
-    interpol=(impl_.m_b[n-1]*h + impl_.m_c[n-1])*h + impl_.m_y[n-1];
-  } else {
+  for (int i = 0; i < n-1; i++) {
     // interpolation
-      interpol=((impl_.m_a[idx]*h + impl_.m_b[idx])*h + impl_.m_c[idx])*h + impl_.m_y[idx];
+    h = x - impl_.m_x[i];
+    result = CppAD::CondExpGt(x, (AD<double>)impl_.m_x[i], ((impl_.m_a[i]*h + impl_.m_b[i])*h + impl_.m_c[i])*h + impl_.m_y[i], result);
   }
-  return interpol;
+
+  // extrapolation to the right
+  h = x - impl_.m_x[n-1];
+  result = CppAD::CondExpGt(x, (AD<double>)impl_.m_x[n-1], (impl_.m_b[n-1]*h + impl_.m_c[n-1])*h + impl_.m_y[n-1], result);
+
+  return result;
 }
 
 } // namespace CppAD
