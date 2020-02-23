@@ -118,6 +118,9 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 			}
 			pfit.setInput(v);
 			p.coeffs = pfit.solve();
+			for(int i = 0; i < p.coeffs.size(); ++i)
+			    cout<<p.coeffs[i]<<" ";
+				cout<<endl;
 	}
 
 	// number of independent state and steering variables (domain dimension for f and g)
