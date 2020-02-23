@@ -114,7 +114,6 @@ int main(int argc, char** argv)
       {
         geometry_msgs::PointStamped point;
         listener.transformPoint("/base_link", path_points[i], point);
-	     // cout << "x: "<< point.point.x << " y:   " << point.point.y << endl;
         if(point.point.x <= prev)
           continue;
         prev = point.point.x;

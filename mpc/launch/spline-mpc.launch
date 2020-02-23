@@ -32,8 +32,8 @@
             <param name="an_max" type="double" value="0.5" />
 			<param name="lf" type="double" value="0.2" />
 			<param name="lr" type="double" value="0.2" />
-			<param name="spline_visualization_delta", value="0.1"/>
-		    <param name="spline_visualization_points", value="20"/>
+			<param name="spline_visualization_delta" value="0.1"/>
+		    <param name="spline_visualization_points" value="20"/>
             <!--remap from="closest_path_points" to="path" /-->
 		</node>
 
