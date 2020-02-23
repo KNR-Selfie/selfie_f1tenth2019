@@ -226,9 +226,9 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
 	// ============== DEBUG =====================
   Controls controls;
 
-  controls.delta = solution.x[steering_start + p.steering_vars + p.delta];
-  controls.velocity = solution.x[2 * p.state_vars + p.v];
-  controls.acceleration = solution.x[steering_start + p.steering_vars + p.a];
+  controls.delta = solution.x[steering_start + p.delta];
+  controls.velocity = solution.x[p.state_vars + p.v];
+  controls.acceleration = solution.x[steering_start + p.a];
 
   std::vector <geometry_msgs::PoseStamped> poses(p.prediction_horizon);
   std::vector <geometry_msgs::PoseStamped> polynomial_poses(p.spline_visualization_points);
