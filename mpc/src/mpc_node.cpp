@@ -66,7 +66,7 @@ int main(int argc, char** argv)
   p.state_vars = 4;
   // a, delta
   p.steering_vars = 2;
-  p.constraint_functions = 5;
+  p.constraint_functions = 4;
   p.newPoints = false;
 
   double avg_acceleration = 0;
