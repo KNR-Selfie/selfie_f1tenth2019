@@ -21,7 +21,7 @@ std::vector<geometry_msgs::PointStamped> path_points;
 bool updatePoints = false;
 
 
-void speedCallback(const std_msgs::Float64::ConstPtr& msg);
+void speedCallback(const std_msgs::Float32::ConstPtr& msg);
 void pathCallback(const nav_msgs::Path::ConstPtr& msg);
 
 
@@ -161,7 +161,7 @@ int main(int argc, char** argv)
 }
 
 
-void speedCallback(const std_msgs::Float64::ConstPtr& msg)
+void speedCallback(const std_msgs::Float32::ConstPtr& msg)
 {
   speed = msg->data;
 }
