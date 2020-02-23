@@ -240,7 +240,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
     polynomial_poses[i].header.stamp = ros::Time::now();
     polynomial_poses[i].header.frame_id = "base_link";
     polynomial_poses[i].pose.position.x = i*p.spline_visualization_delta;
-    polynomial_poses[i].pose.position.y = CppAD::Value((*spline)(i));
+    polynomial_poses[i].pose.position.y = CppAD::Value((*spline)(i*p.spline_visualization_delta));
   }
   // cout << "splojn - predicted_y\n";
   // for(int i = 0; i < poses.size(); ++i){
