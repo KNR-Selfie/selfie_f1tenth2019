@@ -43,6 +43,7 @@ struct Controls{
 
   double get_total_acceleration2(double lr, double lf){
       double at2 = acceleration*acceleration;
+	  if(delta == 0) return 0;
       double beta = atan(lr/(lr + lf) * tan(delta));
       double an = velocity*velocity * sin(beta)/lr;
       double an2 = an*an;
