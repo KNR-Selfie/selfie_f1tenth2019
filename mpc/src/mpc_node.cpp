@@ -10,6 +10,7 @@
 #include "geometry_msgs/PointStamped.h"
 #include <iterator>
 #include <algorithm>
+#include <fstream>
 #include "mpc.h"
 
 using namespace std;
@@ -77,6 +78,10 @@ int main(int argc, char** argv)
   ros::spinOnce();
   ros::Duration(2.0).sleep();
   double last_delta = 0, last_acceleration = 0;
+
+  std::ofstream data_file;
+  data_file.open("acceleration_data.csv");
+  data_file << "an  at\n";
 
   while(ros::ok())
   {
@@ -146,9 +151,8 @@ int main(int argc, char** argv)
     last_delta = controls.delta;
     last_acceleration = controls.acceleration;
 
-    avg_acceleration = controls.get_total_acceleration2(p.lr, p.lf);
-    cout << "avg acceleration:" << sqrt(avg_acceleration) << endl;
-    //cout << "acceleration:" << avg_acceleration << endl;
+    data_file << controls.get_normal_acceleration(p.lr, p.lf) << "  " <<
+    controls.get_tangential_acceleration() << "\n";
     ++loop_count;
 
     optimal_path_msg = controls.predicted_path;
@@ -161,8 +165,9 @@ int main(int argc, char** argv)
     ros::spinOnce();
 
     rate.sleep();
-    //std::cout << "speed: " << speed << std::endl;
   }
+
+  data_file.close();
   return 0;
 }
 

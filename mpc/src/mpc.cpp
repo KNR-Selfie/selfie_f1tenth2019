@@ -185,7 +185,7 @@ Controls MPC::mpc_solve(std::vector<double> state0, std::vector<double> state_lo
   // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
   // Change this as you see fit.
   string ipopt_cpu_time_string = to_string(p.ipopt_cpu_time);
-  options += "Numeric max_cpu_time          " + ipopt_cpu_time_string;
+  options += "Numeric max_cpu_time          " + ipopt_cpu_time_string + "\n";
 	// place to return solution
 	CppAD::ipopt::solve_result<Dvector> solution;
 

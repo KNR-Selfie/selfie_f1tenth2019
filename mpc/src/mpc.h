@@ -51,7 +51,12 @@ struct Controls{
 
   double get_normal_acceleration(double lr, double lf){
       double beta = lr/(lr + lf) * delta;
-      return velocity*velocity * beta/lr;
+      int sign = -1 ? beta <= 0 : 1;
+      return sign * sqrt(velocity*velocity * beta/lr);
+  }
+
+  double get_tangential_acceleration(){
+      return acceleration;
   }
 
 };
