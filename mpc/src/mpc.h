@@ -43,22 +43,27 @@ struct Controls{
 
   double get_total_acceleration2(double lr, double lf){
       double at2 = acceleration*acceleration;
-	  if(delta == 0) return 0;
       double beta = atan(lr/(lr + lf) * tan(delta));
       double an = velocity*velocity * sin(beta)/lr;
       double an2 = an*an;
       return at2 + an2;
   }
 
-  double get_normal_acceleration(double lr, double lf){
-      double beta = lr/(lr + lf) * delta;
-      int sign = beta <= 0 ? -1 : 1;
-      return sign * sqrt(velocity*velocity * beta/lr);
+  double get_normal_acceleration_linear(double lr, double lf){
+      double beta = (lr/(lr + lf)) * delta;
+	  return velocity*velocity * beta/lr;
+  }
+
+  double get_normal_acceleration_non_linear(double lr, double lf){
+	  double beta = atan(lr/(lr + lf) * tan(delta));
+      return velocity*velocity * sin(beta)/lr;
   }
 
   double get_tangential_acceleration(){
       return acceleration;
   }
+
+
 
 };
 

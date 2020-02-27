@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 
   std::ofstream data_file;
   data_file.open("/home/krzysiu/acceleration_data.csv");
-  data_file << "rostime    an    at\n";
+  data_file << "rostime    an    an_nl    at\n";
 
   while(ros::ok())
   {
@@ -152,7 +152,8 @@ int main(int argc, char** argv)
     last_acceleration = controls.acceleration;
 
     data_file << ros::Time::now() << "    " <<
-    controls.get_normal_acceleration(p.lr, p.lf) << "    " <<
+    controls.get_normal_acceleration_linear(p.lr, p.lf) << "    " <<
+    controls.get_normal_acceleration_non_linear(p.lr, p.lf) << "    " <<
     controls.get_tangential_acceleration() << "\n";
     ++loop_count;
 
