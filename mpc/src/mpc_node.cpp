@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   double last_delta = 0, last_acceleration = 0;
 
   std::ofstream data_file;
-  data_file.open("acceleration_data.csv");
+  data_file.open("/home/krzysiu/acceleration_data.csv");
   data_file << "an  at\n";
 
   while(ros::ok())

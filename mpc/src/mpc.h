@@ -51,7 +51,7 @@ struct Controls{
 
   double get_normal_acceleration(double lr, double lf){
       double beta = lr/(lr + lf) * delta;
-      int sign = -1 ? beta <= 0 : 1;
+      int sign = beta <= 0 ? -1 : 1;
       return sign * sqrt(velocity*velocity * beta/lr);
   }
 
