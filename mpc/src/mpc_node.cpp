@@ -80,8 +80,8 @@ int main(int argc, char** argv)
   double last_delta = 0, last_acceleration = 0;
 
   std::ofstream data_file;
-  data_file.open("/home/krzysiu/acceleration_data.csv");
-  data_file << "rostime    an    an_nl    at\n";
+  data_file.open("/home/marcel/ros_ws/analytics_ws/src/performance_monitor/data/acceleration_data.csv");
+  data_file << "rostime,an,an_nl,at\n";
 
   while(ros::ok())
   {
@@ -151,9 +151,9 @@ int main(int argc, char** argv)
     last_delta = controls.delta;
     last_acceleration = controls.acceleration;
 
-    data_file << ros::Time::now() << "    " <<
-    controls.get_normal_acceleration_linear(p.lr, p.lf) << "    " <<
-    controls.get_normal_acceleration_non_linear(p.lr, p.lf) << "    " <<
+    data_file << ros::Time::now() << "," <<
+    controls.get_normal_acceleration_linear(p.lr, p.lf) << "," <<
+    controls.get_normal_acceleration_non_linear(p.lr, p.lf) << "," <<
     controls.get_tangential_acceleration() << "\n";
     ++loop_count;
 
